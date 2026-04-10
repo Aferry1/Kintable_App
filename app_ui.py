@@ -27,12 +27,12 @@ def show_home_screen():
         print(f"{meal['name']} by {meal['host']}")
 
   #fake data
-  def get_meals():
-    return [
-        {"name": "Taco Salad", "host": "John Miller"},
-        {"name": "Hamburgers", "host": "James Washington"},
-        {"name": "Pasta Bake", "host": "George Mason"}
-    ]
+    def get_meals():
+        return [
+            {"name": "Taco Salad", "host": "John Miller"},
+            {"name": "Hamburgers", "host": "James Washington"},
+            {"name": "Pasta Bake", "host": "George Mason"}
+        ]
 
 #other screens
 def show_reservations_screen():
