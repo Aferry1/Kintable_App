@@ -1,6 +1,6 @@
 #Rida Data Table of app
 from models import User, Meal, Home, Table, Seat, Dependent, CuisineStyle, ConversationTopic
- --- USERS ---
+# --- USERS ---
 hostfamily1 = User("User1", "John Miller", "host", True)
 hostfamily2 = User("User2", "James Washington", "host", True)
 hostfamily3 = User("User3", "George Mason", "host", True)
@@ -103,7 +103,7 @@ def meal_info_data():
         {
             "name": record["meal"].title,
             "host": record["host"].name,
-=            "date": record["meal"].date_prepared,
+            "date": record["meal"].date_prepared,
             "description": record["meal"].description,
             "location": record["home"].name,
             "seats_available": sum(1 for s in record["table"].seats if s.is_available),
