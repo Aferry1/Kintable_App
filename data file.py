@@ -1,14 +1,14 @@
 #Rida Data Table of app
-
+from models import User, Meal, Home, Table, Seat, Dependent, CuisineStyle, ConversationTopic
  --- USERS ---
 hostfamily1 = User("User1", "John Miller", "host", True)
 hostfamily2 = User("User2", "James Washington", "host", True)
 hostfamily3 = User("User3", "George Mason", "host", True)
 
 # --- HOMES ---
-home1 = Home("Home1", "123 Oak Street", "Santa Monica, CA", "Miller Home")
-home2 = Home("Home2", "456 Elm Avenue", "Santa Monica, CA", "Washington Home")
-home3 = Home("Home3", "789 Pine Road", "Santa Monica, CA", "Mason Home")
+home1 = Home("Home1", "123 Oak Street", "St. Louis, MO", "Miller Home")
+home2 = Home("Home2", "456 Elm Avenue", "St. Louis, MO", "Washington Home")
+home3 = Home("Home3", "789 Pine Road", "St. Louis, MO", "Mason Home")
 
 # --- TABLES ---
 table1 = Table("Table1", "Miller Dining Table", 6)
