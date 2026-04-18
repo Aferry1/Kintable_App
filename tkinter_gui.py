@@ -1,6 +1,10 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from datetime import date
+import json
+import os
+import re
+import hashlib
 from models import User, Meal, Table
 
 # Sample data
@@ -15,6 +19,8 @@ CONNECTIONS  = [
     {"name": "Sarah Mitchell", "role": "Host"},
     {"name": "Tom Bradley",    "role": "Guest"},
 ]
+
+USER_DB_FILE = "users.json"
 
 # Colour palette — warm, dark, earthy
 BG_MAIN   = "#1E2D1E"
@@ -36,6 +42,46 @@ FONT_BODY   = (F, 11)
 FONT_SMALL  = (F, 9)
 FONT_NAV    = (F, 10, "bold")
 FONT_BTN    = (F, 11, "bold")
+
+
+def load_users():
+    if not os.path.exists(USER_DB_FILE):
+        return {}
+    try:
+        with open(USER_DB_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
+def save_users(users):
+    with open(USER_DB_FILE, "w", encoding="utf-8") as f:
+        json.dump(users, f, indent=2)
+
+
+# For a school project, SHA-256 is acceptable. In production, use bcrypt or argon2.
+def hash_password(password):
+    return hashlib.sha256(password.encode("utf-8")).hexdigest()
+
+
+def validate_phone(phone):
+    if not re.fullmatch(r"\d+", phone or ""):
+        return False, "Cell number must contain digits only with no spaces, dashes, or parentheses."
+    return True, ""
+
+
+def validate_password(password):
+    if len(password) < 6:
+        return False, "Password must be at least 6 characters long."
+    if not password.isalnum():
+        return False, "Password must be alphanumeric only."
+    if not re.search(r"[A-Z]", password):
+        return False, "Password must include at least 1 uppercase letter."
+    if not re.search(r"[a-z]", password):
+        return False, "Password must include at least 1 lowercase letter."
+    if not re.search(r"\d", password):
+        return False, "Password must include at least 1 number."
+    return True, ""
 
 
 class Card(tk.Frame):
@@ -131,30 +177,108 @@ class LoginScreen(tk.Frame):
     def __init__(self, parent, app):
         super().__init__(parent, bg=BG_MAIN)
         self._app = app
+        self._mode = "welcome"
         self._build()
 
-    def _build(self):
-        outer = tk.Frame(self, bg=BG_MAIN)
-        outer.place(relx=0.5, rely=0.5, anchor="center")
+    def refresh(self):
+        self._render_mode()
 
-        tk.Label(outer, text="KinTable", font=(F, 38, "bold"),
+    def _build(self):
+        self._outer = tk.Frame(self, bg=BG_MAIN)
+        self._outer.place(relx=0.5, rely=0.5, anchor="center")
+
+        tk.Label(self._outer, text="KinTable", font=(F, 38, "bold"),
                  bg=BG_MAIN, fg=ACCENT).pack(pady=(0, 4))
-        tk.Label(outer, text="Hyper-local meal sharing for families",
+        tk.Label(self._outer, text="Hyper-local meal sharing for families",
                  font=FONT_BODY, bg=BG_MAIN, fg=TXT_SAGE).pack(pady=(0, 30))
 
-        card = Card(outer, padx=36, pady=30)
-        card.pack()
+        self._card = Card(self._outer, padx=36, pady=30)
+        self._card.pack()
+        self._render_mode()
 
-        tk.Label(card, text="Create your account", font=FONT_HEAD,
+    def _clear_card(self):
+        for widget in self._card.winfo_children():
+            widget.destroy()
+
+    def _render_mode(self):
+        self._clear_card()
+        if self._mode == "welcome":
+            self._build_welcome()
+        elif self._mode == "signup":
+            self._build_signup()
+        elif self._mode == "login_form":
+            self._build_login()
+        elif self._mode == "forgot":
+            self._build_forgot()
+
+    def _build_welcome(self):
+        tk.Label(self._card, text="Welcome to KinTable", font=FONT_HEAD,
+                 bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w", pady=(0, 10))
+        tk.Label(self._card,
+                 text="Choose an option below to create an account or log in.",
+                 font=FONT_BODY, bg=BG_CARD, fg=TXT_SAGE,
+                 wraplength=340, justify="left").pack(anchor="w", pady=(0, 18))
+        PrimaryBtn(self._card, "Sign Up", lambda: self._set_mode("signup")).pack(fill="x", pady=(0, 10))
+        SecondaryBtn(self._card, "Login", lambda: self._set_mode("login_form")).pack(fill="x")
+
+    def _build_signup(self):
+        tk.Label(self._card, text="Create your account", font=FONT_HEAD,
                  bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w", pady=(0, 18))
 
-        self._first = self._field(card, "First Name")
-        self._last  = self._field(card, "Last Name")
-        self._uname = self._field(card, "Username")
+        self._first = self._field(self._card, "First Name")
+        self._last  = self._field(self._card, "Last Name")
+        self._uname = self._field(self._card, "Username")
+        self._phone = self._field(self._card, "Cell Number")
+        tk.Label(self._card,
+                 text="Your cell number is used to verify your identity if you ever forget your login information.",
+                 font=FONT_SMALL, bg=BG_CARD, fg=TXT_SAGE,
+                 wraplength=340, justify="left").pack(anchor="w", pady=(0, 10))
+        self._pw_signup = self._field(self._card, "Create Password", show="*")
+        self._pw_confirm = self._field(self._card, "Confirm Password", show="*")
+        tk.Label(self._card,
+                 text="Password must be at least 6 characters, alphanumeric only, case sensitive, and include 1 uppercase, 1 lowercase, and 1 number.",
+                 font=FONT_SMALL, bg=BG_CARD, fg=TXT_SAGE,
+                 wraplength=340, justify="left").pack(anchor="w", pady=(0, 12))
 
-        PrimaryBtn(card, "Get Started", self._register).pack(fill="x", pady=(18, 0))
+        btn_row = tk.Frame(self._card, bg=BG_CARD)
+        btn_row.pack(fill="x", pady=(8, 0))
+        SecondaryBtn(btn_row, "Back", lambda: self._set_mode("welcome")).pack(side="left")
+        PrimaryBtn(btn_row, "Create Account", self._register).pack(side="right")
 
-    def _field(self, parent, label):
+    def _build_login(self):
+        tk.Label(self._card, text="Login", font=FONT_HEAD,
+                 bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w", pady=(0, 18))
+
+        self._login_uname = self._field(self._card, "Username")
+        self._login_pw = self._field(self._card, "Password", show="*")
+
+        btn_row = tk.Frame(self._card, bg=BG_CARD)
+        btn_row.pack(fill="x", pady=(8, 0))
+        SecondaryBtn(btn_row, "Back", lambda: self._set_mode("welcome")).pack(side="left")
+        PrimaryBtn(btn_row, "Login", self._login).pack(side="right")
+
+        SecondaryBtn(self._card, "Forgot Login Info", lambda: self._set_mode("forgot")).pack(fill="x", pady=(14, 0))
+
+    def _build_forgot(self):
+        tk.Label(self._card, text="Forgot Login Info", font=FONT_HEAD,
+                 bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w", pady=(0, 10))
+        tk.Label(self._card,
+                 text="Enter the cell number tied to your account. Use digits only with no spaces, dashes, or parentheses.",
+                 font=FONT_BODY, bg=BG_CARD, fg=TXT_SAGE,
+                 wraplength=340, justify="left").pack(anchor="w", pady=(0, 16))
+
+        self._forgot_phone = self._field(self._card, "Cell Number")
+
+        btn_row = tk.Frame(self._card, bg=BG_CARD)
+        btn_row.pack(fill="x", pady=(8, 0))
+        SecondaryBtn(btn_row, "Back", lambda: self._set_mode("login_form")).pack(side="left")
+        PrimaryBtn(btn_row, "Verify", self._forgot_login_info).pack(side="right")
+
+    def _set_mode(self, mode):
+        self._mode = mode
+        self._render_mode()
+
+    def _field(self, parent, label, show=None):
         tk.Label(parent, text=label, font=FONT_SMALL,
                  bg=BG_CARD, fg=TXT_SAGE).pack(anchor="w")
         var = tk.StringVar()
@@ -162,7 +286,7 @@ class LoginScreen(tk.Frame):
                      bg=BG_INPUT, fg=TXT_CREAM, insertbackground=TXT_CREAM,
                      relief="flat",
                      highlightbackground=ACCENT, highlightthickness=1,
-                     width=30)
+                     width=30, show=show)
         e.pack(fill="x", pady=(2, 10), ipady=6)
         return var
 
@@ -170,11 +294,87 @@ class LoginScreen(tk.Frame):
         first = self._first.get().strip()
         last  = self._last.get().strip()
         uname = self._uname.get().strip()
-        if not first or not last or not uname:
+        phone = self._phone.get().strip()
+        password = self._pw_signup.get().strip()
+        confirm = self._pw_confirm.get().strip()
+
+        if not first or not last or not uname or not phone or not password or not confirm:
             messagebox.showwarning("Missing info", "Please fill in all fields.")
             return
+
+        valid_phone, phone_msg = validate_phone(phone)
+        if not valid_phone:
+            messagebox.showwarning("Invalid phone number", phone_msg)
+            return
+
+        valid_pw, pw_msg = validate_password(password)
+        if not valid_pw:
+            messagebox.showwarning("Invalid password", pw_msg)
+            return
+
+        if password != confirm:
+            messagebox.showwarning("Password mismatch", "Password and Confirm Password must match.")
+            return
+
+        users = load_users()
+        if uname in users:
+            messagebox.showwarning("Username unavailable", "That username already exists. Please choose another.")
+            return
+
+        users[uname] = {
+            "full_name": f"{first} {last}",
+            "phone": phone,
+            "password_hash": hash_password(password),
+            "role": "guest",
+            "active": True,
+        }
+        save_users(users)
+
         self._app.current_user = User(uname, f"{first} {last}", "guest", True)
+        messagebox.showinfo("Account Created", "Your account has been created successfully.")
         self._app.show("home")
+
+    def _login(self):
+        uname = self._login_uname.get().strip()
+        password = self._login_pw.get().strip()
+
+        if not uname or not password:
+            messagebox.showwarning("Missing info", "Please enter your username and password.")
+            return
+
+        users = load_users()
+        record = users.get(uname)
+        if not record:
+            messagebox.showwarning("Login failed", "Username was not found.")
+            return
+
+        if record.get("password_hash") != hash_password(password):
+            messagebox.showwarning("Login failed", "Incorrect password.")
+            return
+
+        self._app.current_user = User(uname,
+                                      record.get("full_name", uname),
+                                      record.get("role", "guest"),
+                                      record.get("active", True))
+        self._app.show("home")
+
+    def _forgot_login_info(self):
+        phone = self._forgot_phone.get().strip()
+        valid_phone, phone_msg = validate_phone(phone)
+        if not valid_phone:
+            messagebox.showwarning("Invalid phone number", phone_msg)
+            return
+
+        users = load_users()
+        matches = [uname for uname, info in users.items() if info.get("phone") == phone]
+        if not matches:
+            messagebox.showwarning("No Match Found", "No account was found with that cell number.")
+            return
+
+        usernames = ", ".join(matches)
+        messagebox.showinfo("Verification Successful",
+                            f"Account match found for cell number ending in {phone[-4:]}.\nUsername(s): {usernames}")
+        self._set_mode("login_form")
 
 
 class ScrollFrame(tk.Frame):
@@ -462,6 +662,9 @@ class ProfileScreen(tk.Frame):
     def _signout(self):
         RESERVATIONS.clear()
         self._app.current_user = None
+        login_screen = self._app._screens.get("login")
+        if login_screen:
+            login_screen._set_mode("welcome")
         self._app.show("login")
 
 
