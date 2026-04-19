@@ -23,25 +23,25 @@ CONNECTIONS  = [
 USER_DB_FILE = "users.json"
 
 # Colour palette — warm, dark, earthy
-BG_MAIN   = "#1E2D1E"
-BG_CARD   = "#253525"
-BG_NAV    = "#152015"
-BG_INPUT  = "#2D3F2D"
+BG_MAIN   = "#022801"
+BG_CARD   = "#60442e"
+BG_NAV    = "#60442e"
+BG_INPUT  = "#c7d3bf"
 ACCENT    = "#E8631A"
 BTN_EARTH = "#C4956A"
-TXT_CREAM = "#F2E8D9"
-TXT_SAGE  = "#9DB89D"
-TXT_GREEN = "#1B2B1B"
+TXT_CREAM = "#c7d3bf"
+TXT_SAGE  = "#4f7543"
+TXT_GREEN = "#4f7543"
 TXT_WHITE = "#FFFFFF"
 
 # Fonts
 F = "DejaVu Sans"
-FONT_TITLE  = (F, 22, "bold")
-FONT_HEAD   = (F, 14, "bold")
-FONT_BODY   = (F, 11)
-FONT_SMALL  = (F, 9)
-FONT_NAV    = (F, 10, "bold")
-FONT_BTN    = (F, 11, "bold")
+FONT_TITLE  = (F, 24, "bold")
+FONT_HEAD   = (F, 18, "bold")
+FONT_BODY   = (F, 14)
+FONT_SMALL  = (F, 10)
+FONT_NAV    = (F, 16, "bold")
+FONT_BTN    = (F, 16, "bold")
 
 
 def load_users():
@@ -87,25 +87,25 @@ def validate_password(password):
 class Card(tk.Frame):
     def __init__(self, parent, **kw):
         super().__init__(parent, bg=BG_CARD, relief="flat",
-                         highlightbackground=ACCENT, highlightthickness=1, **kw)
+                         highlightbackground=TXT_CREAM, highlightthickness=2, **kw)
 
 
 class PrimaryBtn(tk.Button):
     def __init__(self, parent, text, command, **kw):
         super().__init__(parent, text=text, command=command,
                          bg=BTN_EARTH, fg=TXT_GREEN, font=FONT_BTN,
-                         relief="flat", cursor="hand2",
-                         highlightbackground=ACCENT, highlightthickness=2,
+                         relief="flat", cursor="circle",
+                         highlightbackground=TXT_CREAM, highlightthickness=1,
                          padx=14, pady=6, **kw)
-        self.bind("<Enter>", lambda e: self.config(bg="#D4A87A"))
-        self.bind("<Leave>", lambda e: self.config(bg=BTN_EARTH))
+        self.bind("<Enter>", lambda e: self.config(bg="#D4A87A", fg=ACCENT))
+        self.bind("<Leave>", lambda e: self.config(bg=BTN_EARTH, fg=TXT_GREEN))
 
 
 class SecondaryBtn(tk.Button):
     def __init__(self, parent, text, command, **kw):
         super().__init__(parent, text=text, command=command,
                          bg=BG_CARD, fg=TXT_CREAM, font=FONT_BTN,
-                         relief="flat", cursor="hand2",
+                         relief="flat", cursor="circle",
                          highlightbackground=ACCENT, highlightthickness=1,
                          padx=14, pady=6, **kw)
         self.bind("<Enter>", lambda e: self.config(bg="#2F4430"))
@@ -161,13 +161,13 @@ class NavBar(tk.Frame):
 
         for label, name in self.TABS:
             btn = tk.Button(self, text=label, font=FONT_NAV,
-                            bg=BG_NAV, fg=TXT_WHITE,
-                            relief="flat", cursor="hand2",
+                            bg=BG_NAV, fg=TXT_GREEN,
+                            relief="flat", cursor="circle",
                             padx=12, pady=10,
                             command=lambda n=name: self._app.show(n))
             btn.pack(side="left", fill="y")
             btn.bind("<Enter>", lambda e, b=btn: b.config(bg="#1F301F", fg=ACCENT))
-            btn.bind("<Leave>", lambda e, b=btn: b.config(bg=BG_NAV, fg=TXT_WHITE))
+            btn.bind("<Leave>", lambda e, b=btn: b.config(bg=BG_NAV, fg=TXT_GREEN))
             self._btns[name] = btn
 
 
@@ -190,7 +190,7 @@ class LoginScreen(tk.Frame):
         tk.Label(self._outer, text="KinTable", font=(F, 38, "bold"),
                  bg=BG_MAIN, fg=ACCENT).pack(pady=(0, 4))
         tk.Label(self._outer, text="Hyper-local meal sharing for families",
-                 font=FONT_BODY, bg=BG_MAIN, fg=TXT_SAGE).pack(pady=(0, 30))
+                 font=FONT_BODY, bg=BG_MAIN, fg=TXT_CREAM).pack(pady=(0, 30))
 
         self._card = Card(self._outer, padx=36, pady=30)
         self._card.pack()
@@ -213,17 +213,17 @@ class LoginScreen(tk.Frame):
 
     def _build_welcome(self):
         tk.Label(self._card, text="Welcome to KinTable", font=FONT_HEAD,
-                 bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w", pady=(0, 10))
+                 bg=BG_CARD, fg=ACCENT).pack(anchor="w", pady=(0, 10))
         tk.Label(self._card,
                  text="Choose an option below to create an account or log in.",
-                 font=FONT_BODY, bg=BG_CARD, fg=TXT_SAGE,
+                 font=FONT_BODY, bg=BG_CARD, fg=TXT_CREAM,
                  wraplength=340, justify="left").pack(anchor="w", pady=(0, 18))
         PrimaryBtn(self._card, "Sign Up", lambda: self._set_mode("signup")).pack(fill="x", pady=(0, 10))
-        SecondaryBtn(self._card, "Login", lambda: self._set_mode("login_form")).pack(fill="x")
+        PrimaryBtn(self._card, "Login", lambda: self._set_mode("login_form")).pack(fill="x")
 
     def _build_signup(self):
         tk.Label(self._card, text="Create your account", font=FONT_HEAD,
-                 bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w", pady=(0, 18))
+                 bg=BG_CARD, fg=ACCENT).pack(anchor="w", pady=(0, 18))
 
         self._first = self._field(self._card, "First Name")
         self._last  = self._field(self._card, "Last Name")
@@ -231,18 +231,18 @@ class LoginScreen(tk.Frame):
         self._phone = self._field(self._card, "Cell Number")
         tk.Label(self._card,
                  text="Your cell number is used to verify your identity if you ever forget your login information.",
-                 font=FONT_SMALL, bg=BG_CARD, fg=TXT_SAGE,
-                 wraplength=340, justify="left").pack(anchor="w", pady=(0, 10))
+                 font=FONT_SMALL, bg=BG_CARD, fg=TXT_CREAM,
+                 wraplength=340, justify="left").pack(anchor="w", pady=(0, 20))
         self._pw_signup = self._field(self._card, "Create Password", show="*")
         self._pw_confirm = self._field(self._card, "Confirm Password", show="*")
         tk.Label(self._card,
                  text="Password must be at least 6 characters, alphanumeric only, case sensitive, and include 1 uppercase, 1 lowercase, and 1 number.",
-                 font=FONT_SMALL, bg=BG_CARD, fg=TXT_SAGE,
+                 font=FONT_SMALL, bg=BG_CARD, fg=TXT_CREAM,
                  wraplength=340, justify="left").pack(anchor="w", pady=(0, 12))
 
         btn_row = tk.Frame(self._card, bg=BG_CARD)
         btn_row.pack(fill="x", pady=(8, 0))
-        SecondaryBtn(btn_row, "Back", lambda: self._set_mode("welcome")).pack(side="left")
+        PrimaryBtn(btn_row, "Back", lambda: self._set_mode("welcome")).pack(side="left")
         PrimaryBtn(btn_row, "Create Account", self._register).pack(side="right")
 
     def _build_login(self):
@@ -254,24 +254,24 @@ class LoginScreen(tk.Frame):
 
         btn_row = tk.Frame(self._card, bg=BG_CARD)
         btn_row.pack(fill="x", pady=(8, 0))
-        SecondaryBtn(btn_row, "Back", lambda: self._set_mode("welcome")).pack(side="left")
+        PrimaryBtn(btn_row, "Back", lambda: self._set_mode("welcome")).pack(side="left")
         PrimaryBtn(btn_row, "Login", self._login).pack(side="right")
 
-        SecondaryBtn(self._card, "Forgot Login Info", lambda: self._set_mode("forgot")).pack(fill="x", pady=(14, 0))
+        PrimaryBtn(self._card, "Forgot Login Info", lambda: self._set_mode("forgot")).pack(fill="x", pady=(14, 0))
 
     def _build_forgot(self):
         tk.Label(self._card, text="Forgot Login Info", font=FONT_HEAD,
                  bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w", pady=(0, 10))
         tk.Label(self._card,
                  text="Enter the cell number tied to your account. Use digits only with no spaces, dashes, or parentheses.",
-                 font=FONT_BODY, bg=BG_CARD, fg=TXT_SAGE,
+                 font=FONT_BODY, bg=BG_CARD, fg=TXT_CREAM,
                  wraplength=340, justify="left").pack(anchor="w", pady=(0, 16))
 
         self._forgot_phone = self._field(self._card, "Cell Number")
 
         btn_row = tk.Frame(self._card, bg=BG_CARD)
         btn_row.pack(fill="x", pady=(8, 0))
-        SecondaryBtn(btn_row, "Back", lambda: self._set_mode("login_form")).pack(side="left")
+        PrimaryBtn(btn_row, "Back", lambda: self._set_mode("login_form")).pack(side="left")
         PrimaryBtn(btn_row, "Verify", self._forgot_login_info).pack(side="right")
 
     def _set_mode(self, mode):
@@ -280,12 +280,12 @@ class LoginScreen(tk.Frame):
 
     def _field(self, parent, label, show=None):
         tk.Label(parent, text=label, font=FONT_SMALL,
-                 bg=BG_CARD, fg=TXT_SAGE).pack(anchor="w")
+                 bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w")
         var = tk.StringVar()
         e = tk.Entry(parent, textvariable=var, font=FONT_BODY,
-                     bg=BG_INPUT, fg=TXT_CREAM, insertbackground=TXT_CREAM,
+                     bg=BG_INPUT, fg=BG_MAIN, insertbackground=BG_MAIN,
                      relief="flat",
-                     highlightbackground=ACCENT, highlightthickness=1,
+                     highlightbackground=TXT_GREEN, highlightthickness=2,
                      width=30, show=show)
         e.pack(fill="x", pady=(2, 10), ipady=6)
         return var
@@ -409,9 +409,9 @@ class HomeScreen(tk.Frame):
         greeting = f"Good evening, {user.name.split()[0]}!" if user else "Good evening!"
 
         tk.Label(self._content, text="Discover Meals Near You",
-                 font=FONT_TITLE, bg=BG_MAIN, fg=TXT_CREAM).pack(anchor="w")
+                 font=FONT_TITLE, bg=BG_MAIN, fg=ACCENT).pack(anchor="w")
         tk.Label(self._content, text=greeting,
-                 font=FONT_BODY, bg=BG_MAIN, fg=TXT_SAGE).pack(anchor="w", pady=(2, 16))
+                 font=FONT_BODY, bg=BG_MAIN, fg=TXT_CREAM).pack(anchor="w", pady=(2, 16))
 
         sf = ScrollFrame(self._content)
         sf.pack(fill="both", expand=True)
@@ -429,12 +429,12 @@ class HomeScreen(tk.Frame):
         tk.Label(top, text=meal["name"], font=FONT_HEAD,
                  bg=BG_CARD, fg=TXT_CREAM).pack(side="left")
         tk.Label(top, text=f"{meal['seats']} seats available", font=FONT_SMALL,
-                 bg=BG_CARD, fg=TXT_SAGE).pack(side="right")
+                 bg=BG_CARD, fg=ACCENT).pack(side="right")
 
         tk.Label(card, text=f"Hosted by {meal['host']}", font=FONT_SMALL,
-                 bg=BG_CARD, fg=ACCENT).pack(anchor="w", pady=(2, 6))
+                 bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w", pady=(2, 6))
         tk.Label(card, text=meal["desc"], font=FONT_BODY,
-                 bg=BG_CARD, fg=TXT_SAGE, wraplength=600, justify="left").pack(anchor="w")
+                 bg=BG_CARD, fg=TXT_CREAM, wraplength=600, justify="left").pack(anchor="w")
 
         PrimaryBtn(card, "Reserve a Seat", lambda m=meal: self._reserve(m)).pack(
             anchor="e", pady=(12, 0))
@@ -463,12 +463,12 @@ class ReservationsScreen(tk.Frame):
             w.destroy()
 
         tk.Label(self._content, text="Your Reservations",
-                 font=FONT_TITLE, bg=BG_MAIN, fg=TXT_CREAM).pack(anchor="w", pady=(0, 16))
+                 font=FONT_TITLE, bg=BG_MAIN, fg=ACCENT).pack(anchor="w", pady=(0, 16))
 
         if not RESERVATIONS:
             tk.Label(self._content,
                      text="You have no upcoming reservations.\nHead to Discover to find a meal near you!",
-                     font=FONT_BODY, bg=BG_MAIN, fg=TXT_SAGE, justify="left").pack(anchor="w")
+                     font=FONT_BODY, bg=BG_MAIN, fg=TXT_CREAM, justify="left").pack(anchor="w")
             return
 
         sf = ScrollFrame(self._content)
@@ -480,10 +480,10 @@ class ReservationsScreen(tk.Frame):
             tk.Label(card, text=meal["name"], font=FONT_HEAD,
                      bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w")
             tk.Label(card, text=f"Hosted by {meal['host']}", font=FONT_SMALL,
-                     bg=BG_CARD, fg=ACCENT).pack(anchor="w", pady=(2, 6))
+                     bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w", pady=(2, 6))
             tk.Label(card, text=meal["desc"], font=FONT_BODY,
-                     bg=BG_CARD, fg=TXT_SAGE, wraplength=600, justify="left").pack(anchor="w")
-            SecondaryBtn(card, "Cancel Reservation",
+                     bg=BG_CARD, fg=TXT_CREAM, wraplength=600, justify="left").pack(anchor="w")
+            PrimaryBtn(card, "Cancel Reservation",
                          lambda m=meal: self._cancel(m)).pack(anchor="e", pady=(12, 0))
 
     def _cancel(self, meal):
@@ -506,7 +506,7 @@ class HostScreen(tk.Frame):
         outer.pack(fill="both", expand=True, padx=30, pady=20)
 
         tk.Label(outer, text="Host a Meal", font=FONT_TITLE,
-                 bg=BG_MAIN, fg=TXT_CREAM).pack(anchor="w", pady=(0, 16))
+                 bg=BG_MAIN, fg=ACCENT).pack(anchor="w", pady=(0, 16))
 
         card = Card(outer, padx=28, pady=24)
         card.pack(fill="x")
@@ -519,33 +519,33 @@ class HostScreen(tk.Frame):
         btn_row = tk.Frame(card, bg=BG_CARD)
         btn_row.pack(fill="x", pady=(20, 0))
         PrimaryBtn(btn_row, "Create Meal Listing", self._submit).pack(side="right")
-        SecondaryBtn(btn_row, "Clear", self._clear).pack(side="right", padx=(0, 8))
+        PrimaryBtn(btn_row, "Clear", self._clear).pack(side="right", padx=(0, 8))
 
     def _field(self, parent, label, placeholder=""):
         tk.Label(parent, text=label, font=FONT_SMALL,
-                 bg=BG_CARD, fg=TXT_SAGE).pack(anchor="w", pady=(10, 0))
+                 bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w", pady=(10, 0))
         var = tk.StringVar()
         e = tk.Entry(parent, textvariable=var, font=FONT_BODY,
-                     bg=BG_INPUT, fg=TXT_CREAM, insertbackground=TXT_CREAM,
+                     bg=BG_INPUT, fg=TXT_GREEN, insertbackground=TXT_GREEN,
                      relief="flat",
-                     highlightbackground=ACCENT, highlightthickness=1)
+                     highlightbackground=TXT_GREEN, highlightthickness=1)
         e.pack(fill="x", ipady=6, pady=(2, 0))
         if placeholder:
             e.insert(0, placeholder)
             e.config(fg=TXT_SAGE)
             e.bind("<FocusIn>",  lambda ev, en=e, ph=placeholder, v=var:
-                   (en.delete(0, "end"), en.config(fg=TXT_CREAM)) if v.get() == ph else None)
+                   (en.delete(0, "end"), en.config(fg=TXT_GREEN)) if v.get() == ph else None)
             e.bind("<FocusOut>", lambda ev, en=e, ph=placeholder, v=var:
-                   (en.insert(0, ph), en.config(fg=TXT_SAGE)) if not v.get() else None)
+                   (en.insert(0, ph), en.config(fg=TXT_GREEN)) if not v.get() else None)
         return var
 
     def _text_field(self, parent, label):
         tk.Label(parent, text=label, font=FONT_SMALL,
-                 bg=BG_CARD, fg=TXT_SAGE).pack(anchor="w", pady=(10, 0))
+                 bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w", pady=(10, 0))
         t = tk.Text(parent, font=FONT_BODY, height=4,
-                    bg=BG_INPUT, fg=TXT_CREAM, insertbackground=TXT_CREAM,
+                    bg=BG_INPUT, fg=TXT_GREEN, insertbackground=TXT_GREEN,
                     relief="flat",
-                    highlightbackground=ACCENT, highlightthickness=1)
+                    highlightbackground=TXT_GREEN, highlightthickness=1)
         t.pack(fill="x", pady=(2, 0))
         return t
 
@@ -596,7 +596,7 @@ class ConnectionsScreen(tk.Frame):
             w.destroy()
 
         tk.Label(self._content, text="Connections",
-                 font=FONT_TITLE, bg=BG_MAIN, fg=TXT_CREAM).pack(anchor="w", pady=(0, 16))
+                 font=FONT_TITLE, bg=BG_MAIN, fg=ACCENT).pack(anchor="w", pady=(0, 16))
 
         sf = ScrollFrame(self._content)
         sf.pack(fill="both", expand=True)
@@ -607,7 +607,7 @@ class ConnectionsScreen(tk.Frame):
 
             initials = "".join(p[0].upper() for p in conn["name"].split()[:2])
             avatar = tk.Label(card, text=initials, font=(F, 13, "bold"),
-                              bg=BTN_EARTH, fg=TXT_GREEN, width=3, relief="flat")
+                              bg=TXT_CREAM, fg=TXT_GREEN, width=3, relief="flat")
             avatar.pack(side="left", padx=(0, 14))
 
             info = tk.Frame(card, bg=BG_CARD)
@@ -615,7 +615,7 @@ class ConnectionsScreen(tk.Frame):
             tk.Label(info, text=conn["name"], font=FONT_HEAD,
                      bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w")
             tk.Label(info, text=conn["role"], font=FONT_SMALL,
-                     bg=BG_CARD, fg=ACCENT).pack(anchor="w")
+                     bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w")
 
 
 class ProfileScreen(tk.Frame):
@@ -635,7 +635,7 @@ class ProfileScreen(tk.Frame):
         user = self._app.current_user
 
         tk.Label(self._content, text="Profile",
-                 font=FONT_TITLE, bg=BG_MAIN, fg=TXT_CREAM).pack(anchor="w", pady=(0, 16))
+                 font=FONT_TITLE, bg=BG_MAIN, fg=ACCENT).pack(anchor="w", pady=(0, 16))
 
         card = Card(self._content, padx=28, pady=24)
         card.pack(fill="x")
@@ -643,7 +643,7 @@ class ProfileScreen(tk.Frame):
         if user:
             initials = "".join(p[0].upper() for p in user.name.split()[:2])
             av = tk.Label(card, text=initials, font=(F, 28, "bold"),
-                          bg=BTN_EARTH, fg=TXT_GREEN, width=3, relief="flat")
+                          bg=TXT_CREAM, fg=TXT_GREEN, width=3, relief="flat")
             av.pack(pady=(0, 16))
 
             for label, val in [("Full Name",    user.name),
@@ -653,7 +653,7 @@ class ProfileScreen(tk.Frame):
                 row = tk.Frame(card, bg=BG_CARD)
                 row.pack(fill="x", pady=5)
                 tk.Label(row, text=label + ":", font=FONT_SMALL,
-                         bg=BG_CARD, fg=TXT_SAGE, width=14, anchor="w").pack(side="left")
+                         bg=BG_CARD, fg=TXT_CREAM, width=14, anchor="w").pack(side="left")
                 tk.Label(row, text=val, font=FONT_BODY,
                          bg=BG_CARD, fg=TXT_CREAM, anchor="w").pack(side="left")
 
