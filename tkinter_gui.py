@@ -440,12 +440,20 @@ class HomeScreen(tk.Frame):
             anchor="e", pady=(12, 0))
 
     def _reserve(self, meal):
+        if meal["seats"] <= 0:
+            messagebox.showwarning("No seats available", f"Sorry, there are no seats left for {meal['name']}.")
+            return
+
         existing = [r for r in RESERVATIONS if r["id"] == meal["id"]]
         if existing:
             messagebox.showinfo("Already reserved", f"You already have a reservation for {meal['name']}.")
             return
+
+        meal["seats"] -= 1
         RESERVATIONS.append(meal.copy())
+
         messagebox.showinfo("Reserved!", f"You've reserved a seat at {meal['host']}'s {meal['name']}. Enjoy!")
+        self.refresh()
 
 
 class ReservationsScreen(tk.Frame):
@@ -489,6 +497,12 @@ class ReservationsScreen(tk.Frame):
     def _cancel(self, meal):
         if meal in RESERVATIONS:
             RESERVATIONS.remove(meal)
+
+            for listed_meal in MEALS:
+                if listed_meal["id"] == meal["id"]:
+                    listed_meal["seats"] += 1
+                    break
+        messagebox.showinfo("Reservation Cancelled", f"Your reservation for {meal['name']} has been cancelled.")
         self.refresh()
 
 
@@ -556,26 +570,36 @@ class HostScreen(tk.Frame):
         self._invite_var.set("")
 
     def _submit(self):
-        title  = self._title_var.get().strip()
-        desc   = self._desc_var.get("1.0", "end").strip()
-        seats  = self._seats_var.get().strip()
+        title = self._title_var.get().strip()
+        desc = self._desc_var.get("1.0", "end").strip()
+        seats = self._seats_var.get().strip()
+
         if not title or not desc or not seats:
             messagebox.showwarning("Missing info", "Please fill in Meal Title, Description, and Servings.")
             return
+
+        if title.lower() == "e.g. beef stew":
+            messagebox.showwarning("Invalid input", "Please enter a real meal title.")
+            return
+
         try:
-            int(seats)
+            seats = int(seats)
+            if seats <= 0:
+                messagebox.showwarning("Invalid input", "Number of servings must be greater than 0.")
+                return
         except ValueError:
             messagebox.showwarning("Invalid input", "Number of servings must be a whole number.")
             return
 
         user = self._app.current_user
         new_meal = {
-            "id":    f"m{len(MEALS)+1}",
-            "name":  title,
-            "host":  user.name if user else "You",
-            "desc":  desc,
-            "seats": int(seats),
+            "id": f"m{len(MEALS)+1}",
+            "name": title,
+            "host": user.name if user else "You",
+            "desc": desc,
+            "seats": seats,
         }
+
         MEALS.append(new_meal)
         self._clear()
         messagebox.showinfo("Meal Listed!", f'"{title}" has been listed. Other families can now discover it!')
@@ -590,13 +614,49 @@ class ConnectionsScreen(tk.Frame):
         NavBar(self, app).pack(side="top", fill="x")
         self._content = tk.Frame(self, bg=BG_MAIN)
         self._content.pack(fill="both", expand=True, padx=30, pady=20)
+        self._new_connection_var = tk.StringVar()
 
     def refresh(self):
         for w in self._content.winfo_children():
             w.destroy()
 
-        tk.Label(self._content, text="Connections",
-                 font=FONT_TITLE, bg=BG_MAIN, fg=ACCENT).pack(anchor="w", pady=(0, 16))
+        tk.Label(
+            self._content,
+            text="Connections",
+            font=FONT_TITLE,
+            bg=BG_MAIN,
+            fg=ACCENT
+        ).pack(anchor="w", pady=(0, 16))
+
+        form_card = Card(self._content, padx=18, pady=14)
+        form_card.pack(fill="x", pady=(0, 12))
+
+        tk.Label(
+            form_card,
+            text="Add a Connection by Username",
+            font=FONT_SMALL,
+            bg=BG_CARD,
+            fg=TXT_CREAM
+        ).pack(anchor="w")
+
+        entry = tk.Entry(
+            form_card,
+            textvariable=self._new_connection_var,
+            font=FONT_BODY,
+            bg=BG_INPUT,
+            fg=TXT_GREEN,
+            insertbackground=TXT_GREEN,
+            relief="flat",
+            highlightbackground=TXT_GREEN,
+            highlightthickness=1
+        )
+        entry.pack(fill="x", pady=(4, 10), ipady=6)
+
+        PrimaryBtn(
+            form_card,
+            "Add Connection",
+            self._add_connection
+        ).pack(anchor="e")
 
         sf = ScrollFrame(self._content)
         sf.pack(fill="both", expand=True)
@@ -606,16 +666,73 @@ class ConnectionsScreen(tk.Frame):
             card.pack(fill="x", pady=8, padx=2)
 
             initials = "".join(p[0].upper() for p in conn["name"].split()[:2])
-            avatar = tk.Label(card, text=initials, font=(F, 13, "bold"),
-                              bg=TXT_CREAM, fg=TXT_GREEN, width=3, relief="flat")
+            avatar = tk.Label(
+                card,
+                text=initials,
+                font=(F, 13, "bold"),
+                bg=TXT_CREAM,
+                fg=TXT_GREEN,
+                width=3,
+                relief="flat"
+            )
             avatar.pack(side="left", padx=(0, 14))
 
             info = tk.Frame(card, bg=BG_CARD)
             info.pack(side="left", fill="x", expand=True)
-            tk.Label(info, text=conn["name"], font=FONT_HEAD,
-                     bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w")
-            tk.Label(info, text=conn["role"], font=FONT_SMALL,
-                     bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w")
+
+            tk.Label(
+                info,
+                text=conn["name"],
+                font=FONT_HEAD,
+                bg=BG_CARD,
+                fg=TXT_CREAM
+            ).pack(anchor="w")
+
+            tk.Label(
+                info,
+                text=conn["role"],
+                font=FONT_SMALL,
+                bg=BG_CARD,
+                fg=TXT_CREAM
+            ).pack(anchor="w")
+
+            PrimaryBtn(
+                card,
+                "Remove",
+                lambda c=conn: self._remove_connection(c)
+            ).pack(side="right")
+
+    def _add_connection(self):
+        username = self._new_connection_var.get().strip()
+
+        if not username:
+            messagebox.showwarning("Missing info", "Please enter a username.")
+            return
+
+        current_user = self._app.current_user
+        if current_user and username.lower() == current_user.id.lower():
+            messagebox.showwarning("Invalid connection", "You cannot add yourself as a connection.")
+            return
+
+        for conn in CONNECTIONS:
+            if conn["name"].lower() == username.lower():
+                messagebox.showwarning("Duplicate connection", "That connection already exists.")
+                return
+
+        CONNECTIONS.append({
+            "name": username,
+            "role": "Connection"
+        })
+
+        self._new_connection_var.set("")
+        messagebox.showinfo("Connection Added", f"{username} was added to your connections.")
+        self.refresh()
+
+    def _remove_connection(self, connection):
+        if connection in CONNECTIONS:
+            CONNECTIONS.remove(connection)
+            messagebox.showinfo("Connection Removed", f"{connection['name']} was removed.")
+            self.refresh()
 
 
 class ProfileScreen(tk.Frame):
