@@ -1,0 +1,23 @@
+[
+  {
+    "id": "m1",
+    "name": "Taco Salad",
+    "host": "John Miller",
+    "desc": "Fresh taco salad with homemade salsa.",
+    "seats": 3
+  },
+  {
+    "id": "m2",
+    "name": "Hamburgers",
+    "host": "James Washington",
+    "desc": "Classic backyard burgers, all the fixings.",
+    "seats": 3
+  },
+  {
+    "id": "m3",
+    "name": "Pasta Bake",
+    "host": "George Mason",
+    "desc": "Cheesy baked penne with Italian sausage.",
+    "seats": 0
+  }
+]
