@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from datetime import date
+from datetime import date, datetime, timedelta
 import json
 import os
 import re
@@ -31,10 +31,30 @@ def save_meals():
 
 MEALS = load_meals()
 RESERVATIONS = []
-CONNECTIONS  = [
+CONNECTIONS_FILE = os.path.join(BASE_DIR, "connections.json")
+
+DEFAULT_CONNECTIONS = [
     {"username": "sarahmitchell", "name": "Sarah Mitchell", "role": "Host"},
     {"username": "tombradley", "name": "Tom Bradley", "role": "Guest"},
 ]
+
+
+def load_connections():
+    if not os.path.exists(CONNECTIONS_FILE):
+        return DEFAULT_CONNECTIONS.copy()
+    try:
+        with open(CONNECTIONS_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return DEFAULT_CONNECTIONS.copy()
+
+
+def save_connections():
+    with open(CONNECTIONS_FILE, "w", encoding="utf-8") as f:
+        json.dump(CONNECTIONS, f, indent=2)
+
+
+CONNECTIONS = load_connections()
 
 USER_DB_FILE = os.path.join(BASE_DIR, "users.json")
 
@@ -57,7 +77,25 @@ FONT_HEAD   = (F, 18, "bold")
 FONT_BODY   = (F, 14)
 FONT_SMALL  = (F, 10)
 FONT_NAV    = (F, 16, "bold")
+
 FONT_BTN    = (F, 16, "bold")
+
+MONTH_NAMES = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+]
+
+DAYS_OF_MONTH = [str(day) for day in range(1, 32)]
+
+TIME_OPTIONS = []
+for hour in range(1, 13):
+    for minute in ("00", "15", "30", "45"):
+        TIME_OPTIONS.append(f"{hour}:{minute}")
+
+
+def get_default_meal_date_values():
+    tomorrow = date.today() + timedelta(days=1)
+    return MONTH_NAMES[tomorrow.month - 1], str(tomorrow.day)
 
 
 def load_users():
@@ -98,6 +136,55 @@ def validate_password(password):
     if not re.search(r"\d", password):
         return False, "Password must include at least 1 number."
     return True, ""
+
+
+def validate_meal_datetime(month_name, day_value, time_value, am_pm, time_is_tbd):
+    if month_name not in MONTH_NAMES:
+        return False, "Please select a valid meal month.", "", ""
+
+    if not day_value.isdigit():
+        return False, "Please select a valid meal day.", "", ""
+
+    month_num = MONTH_NAMES.index(month_name) + 1
+    day_num = int(day_value)
+    today = date.today()
+    selected_year = today.year
+
+    try:
+        selected_date = date(selected_year, month_num, day_num)
+    except ValueError:
+        return False, "Please select a real calendar date.", "", ""
+
+    if selected_date < today:
+        try:
+            selected_date = date(selected_year + 1, month_num, day_num)
+        except ValueError:
+            return False, "Please select a real calendar date.", "", ""
+
+    days_away = (selected_date - today).days
+    if days_away < 1:
+        return False, "Meal date must be at least tomorrow.", "", ""
+    if days_away > 90:
+        return False, "Meal date cannot be more than 90 days away.", "", ""
+
+    if time_is_tbd:
+        return True, "", selected_date.strftime("%Y-%m-%d"), "TBD"
+
+    if time_value not in TIME_OPTIONS:
+        return False, "Please select a valid meal time.", "", ""
+
+    if am_pm not in ("AM", "PM"):
+        return False, "Please select AM or PM.", "", ""
+
+    return True, "", selected_date.strftime("%Y-%m-%d"), f"{time_value} {am_pm}"
+
+
+def format_meal_date_for_display(meal_date):
+    try:
+        parsed_date = datetime.strptime(meal_date, "%Y-%m-%d")
+        return parsed_date.strftime("%B %d").replace(" 0", " ")
+    except (ValueError, TypeError):
+        return meal_date or "Date TBD"
 
 class ScrollableFrame(tk.Frame):
     def __init__(self, parent):
@@ -179,7 +266,7 @@ class KinTableApp(tk.Tk):
 class NavBar(tk.Frame):
     TABS = [
         ("Home",         "home"),
-        ("Reservations", "reservations"),
+        ("Meals",        "reservations"),
         ("Host a Meal",  "host"),
         ("Connections",  "connections"),
         ("Profile",      "profile"),
@@ -261,7 +348,11 @@ class LoginScreen(tk.Frame):
 
     def _build_signup(self):
         tk.Label(self._card, text="Create your account", font=FONT_HEAD,
-                 bg=BG_CARD, fg=ACCENT).pack(anchor="w", pady=(0, 18))
+                 bg=BG_CARD, fg=ACCENT).pack(anchor="w", pady=(0, 8))
+        tk.Label(self._card,
+                 text="Use the scroll bar if the full sign-up form is not visible.",
+                 font=FONT_SMALL, bg=BG_CARD, fg=TXT_CREAM,
+                 wraplength=340, justify="left").pack(anchor="w", pady=(0, 18))
 
         self._first = self._field(self._card, "First Name")
         self._last  = self._field(self._card, "Last Name")
@@ -283,10 +374,7 @@ class LoginScreen(tk.Frame):
         PrimaryBtn(btn_row, "Back", lambda: self._set_mode("welcome")).pack(side="left")
         PrimaryBtn(btn_row, "Create Account", self._register).pack(side="right")
 
-        tk.Label(self._card,
-                 text="Tip: If the full sign-up form is not visible, use the scroll bar to move through the page.",
-                 font=FONT_SMALL, bg=BG_CARD, fg=TXT_CREAM,
-                 wraplength=340, justify="left").pack(anchor="w", pady=(14, 0))
+
 
     def _build_login(self):
         tk.Label(self._card, text="Login", font=FONT_HEAD,
@@ -504,8 +592,12 @@ class HomeScreen(tk.Frame):
         tk.Label(top, text=f"{meal['seats']} seats available", font=FONT_SMALL,
                  bg=BG_CARD, fg=ACCENT).pack(side="right")
 
+        meal_date = format_meal_date_for_display(meal.get("date", "Date TBD"))
+        meal_time = meal.get("time", "TBD")
         tk.Label(card, text=f"Hosted by {meal['host']}", font=FONT_SMALL,
-                 bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w", pady=(2, 6))
+                 bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w", pady=(2, 2))
+        tk.Label(card, text=f"When: {meal_date} at {meal_time}", font=FONT_SMALL,
+                 bg=BG_CARD, fg=ACCENT).pack(anchor="w", pady=(0, 6))
         tk.Label(card, text=meal["desc"], font=FONT_BODY,
                  bg=BG_CARD, fg=TXT_CREAM, wraplength=600, justify="left").pack(anchor="w")
 
@@ -515,6 +607,11 @@ class HomeScreen(tk.Frame):
     def _reserve(self, meal):
         if meal["seats"] <= 0:
             messagebox.showwarning("No servings available", f"Sorry, there are no servings left for {meal['name']}.")
+            return
+
+        user = self._app.current_user
+        if user and (meal.get("host_username") == user.id or meal.get("host") == user.name):
+            messagebox.showwarning("Own listing", "You cannot reserve a meal that you listed yourself.")
             return
 
         existing = [r for r in RESERVATIONS if r["id"] == meal["id"]]
@@ -640,17 +737,26 @@ class ReservationsScreen(tk.Frame):
         for w in self._content.winfo_children():
             w.destroy()
 
-        tk.Label(self._content, text="Your Reservations",
+        tk.Label(self._content, text="My Meals",
                  font=FONT_TITLE, bg=BG_MAIN, fg=ACCENT).pack(anchor="w", pady=(0, 16))
 
-        if not RESERVATIONS:
+        user = self._app.current_user
+        hosted_meals = []
+        if user:
+            hosted_meals = [meal for meal in MEALS if meal.get("host_username") == user.id or meal.get("host") == user.name]
+
+        if not RESERVATIONS and not hosted_meals:
             tk.Label(self._content,
-                     text="You have no upcoming reservations.\nHead to Discover to find a meal near you!",
+                     text="You have no reserved or hosted meals yet.\nHead to Home to find a meal, or Host a Meal to create one!",
                      font=FONT_BODY, bg=BG_MAIN, fg=TXT_CREAM, justify="left").pack(anchor="w")
             return
 
         sf = ScrollFrame(self._content)
         sf.pack(fill="both", expand=True)
+
+        if RESERVATIONS:
+            tk.Label(sf.inner, text="Meals I Reserved", font=FONT_HEAD,
+                     bg=BG_MAIN, fg=ACCENT).pack(anchor="w", pady=(0, 8))
 
         for meal in RESERVATIONS:
             card = Card(sf.inner, padx=18, pady=14)
@@ -659,14 +765,38 @@ class ReservationsScreen(tk.Frame):
                      bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w")
             reserved_seats = meal.get("reserved_seats", 1)
             serving_word = "serving" if reserved_seats == 1 else "servings"
+            meal_date = format_meal_date_for_display(meal.get("date", "Date TBD"))
+            meal_time = meal.get("time", "TBD")
             tk.Label(card, text=f"Hosted by {meal['host']}", font=FONT_SMALL,
                      bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w", pady=(2, 2))
+            tk.Label(card, text=f"When: {meal_date} at {meal_time}", font=FONT_SMALL,
+                     bg=BG_CARD, fg=ACCENT).pack(anchor="w", pady=(0, 2))
             tk.Label(card, text=f"Reserved: {reserved_seats} {serving_word}", font=FONT_SMALL,
                      bg=BG_CARD, fg=ACCENT).pack(anchor="w", pady=(0, 6))
             tk.Label(card, text=meal["desc"], font=FONT_BODY,
                      bg=BG_CARD, fg=TXT_CREAM, wraplength=600, justify="left").pack(anchor="w")
-            PrimaryBtn(card, "Cancel Reservation",
+            PrimaryBtn(card, "Cancel Meal",
                          lambda m=meal: self._cancel(m)).pack(anchor="e", pady=(12, 0))
+
+        if hosted_meals:
+            tk.Label(sf.inner, text="Meals I Am Hosting", font=FONT_HEAD,
+                     bg=BG_MAIN, fg=ACCENT).pack(anchor="w", pady=(18, 8))
+
+        for meal in hosted_meals:
+            card = Card(sf.inner, padx=18, pady=14)
+            card.pack(fill="x", pady=8, padx=2)
+            meal_date = format_meal_date_for_display(meal.get("date", "Date TBD"))
+            meal_time = meal.get("time", "TBD")
+            tk.Label(card, text=meal["name"], font=FONT_HEAD,
+                     bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w")
+            tk.Label(card, text=f"When: {meal_date} at {meal_time}", font=FONT_SMALL,
+                     bg=BG_CARD, fg=ACCENT).pack(anchor="w", pady=(2, 2))
+            tk.Label(card, text=f"Hosting: {meal['seats']} servings still available", font=FONT_SMALL,
+                     bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w", pady=(0, 6))
+            tk.Label(card, text=meal["desc"], font=FONT_BODY,
+                     bg=BG_CARD, fg=TXT_CREAM, wraplength=600, justify="left").pack(anchor="w")
+            PrimaryBtn(card, "Cancel Hosted Meal",
+                         lambda m=meal: self._cancel_hosted_meal(m)).pack(anchor="e", pady=(12, 0))
 
     def _cancel(self, meal):
         if meal in RESERVATIONS:
@@ -678,8 +808,17 @@ class ReservationsScreen(tk.Frame):
                     listed_meal["seats"] += reserved_seats
                     save_meals()
                     break
-        messagebox.showinfo("Reservation Cancelled", f"Your reservation for {meal['name']} has been cancelled.")
+        messagebox.showinfo("Meal Cancelled", f"Your meal reservation for {meal['name']} has been cancelled.")
         self.refresh()
+
+
+    def _cancel_hosted_meal(self, meal):
+        if messagebox.askyesno("Cancel Hosted Meal", f"Remove your hosted meal listing for {meal['name']}?"):
+            if meal in MEALS:
+                MEALS.remove(meal)
+                save_meals()
+                messagebox.showinfo("Hosted Meal Cancelled", f"Your hosted meal listing for {meal['name']} was removed.")
+                self.refresh()
 
 
 class HostScreen(tk.Frame):
@@ -703,6 +842,45 @@ class HostScreen(tk.Frame):
 
         self._title_var = self._field(card, "Meal Title", "e.g. Beef Stew")
         self._desc_var  = self._text_field(card, "Description")
+
+        default_month, default_day = get_default_meal_date_values()
+        self._month_var = tk.StringVar(value=default_month)
+        self._day_var = tk.StringVar(value=default_day)
+
+        tk.Label(card, text="Meal Date", font=FONT_SMALL,
+                 bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w", pady=(10, 0))
+        date_row = tk.Frame(card, bg=BG_CARD)
+        date_row.pack(fill="x", pady=(2, 0))
+        self._month_box = ttk.Combobox(date_row, textvariable=self._month_var,
+                                       values=MONTH_NAMES, state="readonly",
+                                       font=FONT_BODY, width=12)
+        self._month_box.pack(side="left", ipady=4)
+        self._day_box = ttk.Combobox(date_row, textvariable=self._day_var,
+                                     values=DAYS_OF_MONTH, state="readonly",
+                                     font=FONT_BODY, width=12)
+        self._day_box.pack(side="left", padx=(8, 0), ipady=4)
+
+        self._time_tbd_var = tk.BooleanVar(value=True)
+        self._time_var = tk.StringVar(value=TIME_OPTIONS[0])
+        self._ampm_var = tk.StringVar(value="PM")
+
+        tk.Checkbutton(card, text="Time TBD", variable=self._time_tbd_var,
+                       command=self._toggle_time_fields,
+                       bg=BG_CARD, fg=TXT_CREAM, selectcolor=BG_CARD,
+                       activebackground=BG_CARD, activeforeground=TXT_CREAM,
+                       font=FONT_SMALL).pack(anchor="w", pady=(10, 0))
+
+        time_row = tk.Frame(card, bg=BG_CARD)
+        time_row.pack(fill="x", pady=(2, 0))
+        self._time_box = ttk.Combobox(time_row, textvariable=self._time_var,
+                                      values=TIME_OPTIONS, state="disabled",
+                                      font=FONT_BODY, width=12)
+        self._time_box.pack(side="left", ipady=4)
+        self._ampm_box = ttk.Combobox(time_row, textvariable=self._ampm_var,
+                                      values=["AM", "PM"], state="disabled",
+                                      font=FONT_BODY, width=12)
+        self._ampm_box.pack(side="left", padx=(8, 0), ipady=4)
+
         self._seats_var = self._field(card, "Number of Extra Servings", "e.g. 4")
         self._invite_var = self._field(card, "Invite Users (comma-separated usernames)", "optional")
 
@@ -710,6 +888,12 @@ class HostScreen(tk.Frame):
         btn_row.pack(fill="x", pady=(20, 0))
         PrimaryBtn(btn_row, "Create Meal Listing", self._submit).pack(side="right")
         PrimaryBtn(btn_row, "Clear", self._clear).pack(side="right", padx=(0, 8))
+
+        tk.Label(outer, text="Your Meal Listings", font=FONT_TITLE,
+                 bg=BG_MAIN, fg=ACCENT).pack(anchor="w", pady=(22, 10))
+        self._listings_area = tk.Frame(outer, bg=BG_MAIN)
+        self._listings_area.pack(fill="both", expand=True)
+        self._refresh_my_listings()
 
     def _field(self, parent, label, placeholder=""):
         tk.Label(parent, text=label, font=FONT_SMALL,
@@ -739,28 +923,65 @@ class HostScreen(tk.Frame):
         t.pack(fill="x", pady=(2, 0))
         return t
 
+    def _toggle_time_fields(self):
+        if self._time_tbd_var.get():
+            self._time_box.config(state="disabled")
+            self._ampm_box.config(state="disabled")
+        else:
+            self._time_box.config(state="readonly")
+            self._ampm_box.config(state="readonly")
+
     def _clear(self):
-        self._title_var.set("")
+        default_month, default_day = get_default_meal_date_values()
+        self._title_var.set("e.g. Beef Stew")
         self._desc_var.delete("1.0", "end")
-        self._seats_var.set("")
-        self._invite_var.set("")
+        self._month_var.set(default_month)
+        self._day_var.set(default_day)
+        self._time_tbd_var.set(True)
+        self._time_var.set(TIME_OPTIONS[0])
+        self._ampm_var.set("PM")
+        self._toggle_time_fields()
+        self._seats_var.set("e.g. 4")
+        self._invite_var.set("optional")
 
     def _submit(self):
         title = self._title_var.get().strip()
         desc = self._desc_var.get("1.0", "end").strip()
+        month_name = self._month_var.get().strip()
+        day_value = self._day_var.get().strip()
+        time_value = self._time_var.get().strip()
+        am_pm = self._ampm_var.get().strip()
+        time_is_tbd = self._time_tbd_var.get()
         seats = self._seats_var.get().strip()
 
-        if not title or not desc or not seats:
-            messagebox.showwarning("Missing info", "Please fill in Meal Title, Description, and Servings.")
+        if not title or not desc or not month_name or not day_value or not seats:
+            messagebox.showwarning("Missing info", "Please fill in Meal Title, Description, Date, and Servings.")
+            return
+
+        valid_dt, dt_msg, meal_date, meal_time = validate_meal_datetime(month_name, day_value, time_value, am_pm, time_is_tbd)
+        if not valid_dt:
+            messagebox.showwarning("Invalid date or time", dt_msg)
             return
 
         if title.lower() == "e.g. beef stew":
             messagebox.showwarning("Invalid input", "Please enter a real meal title.")
             return
 
+        if len(title) < 5 or not re.search(r"[A-Za-z]", title):
+            messagebox.showwarning("Invalid meal title", "Meal title must be at least 5 characters and include letters.")
+            return
+
+        if not re.fullmatch(r"[A-Za-z0-9 '&,-]+", title):
+            messagebox.showwarning("Invalid meal title", "Meal title can only include letters, numbers, spaces, apostrophes, ampersands, commas, and hyphens.")
+            return
+
+        if len(desc) < 10 or not re.search(r"[A-Za-z]", desc):
+            messagebox.showwarning("Invalid description", "Please enter a real meal description of at least 10 characters.")
+            return
+
         try:
             seats = int(seats)
-            if seats <= 0:
+            if seats < 1:
                 messagebox.showwarning("Invalid input", "Number of servings must be greater than 0.")
                 return
         except ValueError:
@@ -772,14 +993,64 @@ class HostScreen(tk.Frame):
             "id": f"m{len(MEALS)+1}",
             "name": title,
             "host": user.name if user else "You",
+            "host_username": user.id if user else "",
             "desc": desc,
+            "date": meal_date,
+            "time": meal_time,
             "seats": seats,
         }
 
         MEALS.append(new_meal)
         save_meals()
         self._clear()
+        self._refresh_my_listings()
         messagebox.showinfo("Meal Listed!", f'"{title}" has been listed. Other families can now discover it!')
+
+
+    def _refresh_my_listings(self):
+        for widget in self._listings_area.winfo_children():
+            widget.destroy()
+
+        user = self._app.current_user
+        if not user:
+            tk.Label(self._listings_area,
+                     text="Log in to view your hosted meal listings.",
+                     font=FONT_BODY, bg=BG_MAIN, fg=TXT_CREAM).pack(anchor="w")
+            return
+
+        my_meals = [meal for meal in MEALS if meal.get("host_username") == user.id or meal.get("host") == user.name]
+
+        if not my_meals:
+            tk.Label(self._listings_area,
+                     text="You have not listed any meals yet.",
+                     font=FONT_BODY, bg=BG_MAIN, fg=TXT_CREAM).pack(anchor="w")
+            return
+
+        sf = ScrollFrame(self._listings_area)
+        sf.pack(fill="both", expand=True)
+
+        for meal in my_meals:
+            card = Card(sf.inner, padx=18, pady=14)
+            card.pack(fill="x", pady=8, padx=2)
+            tk.Label(card, text=meal["name"], font=FONT_HEAD,
+                     bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w")
+            meal_date = format_meal_date_for_display(meal.get("date", "Date TBD"))
+            meal_time = meal.get("time", "TBD")
+            tk.Label(card, text=f"When: {meal_date} at {meal_time}", font=FONT_SMALL,
+                     bg=BG_CARD, fg=ACCENT).pack(anchor="w", pady=(2, 2))
+            tk.Label(card, text=f"{meal['seats']} servings available", font=FONT_SMALL,
+                     bg=BG_CARD, fg=ACCENT).pack(anchor="w", pady=(0, 6))
+            tk.Label(card, text=meal["desc"], font=FONT_BODY,
+                     bg=BG_CARD, fg=TXT_CREAM, wraplength=600, justify="left").pack(anchor="w")
+            PrimaryBtn(card, "Cancel Listing", lambda m=meal: self._cancel_listing(m)).pack(anchor="e", pady=(12, 0))
+
+    def _cancel_listing(self, meal):
+        if messagebox.askyesno("Cancel Listing", f"Remove your listing for {meal['name']}?"):
+            if meal in MEALS:
+                MEALS.remove(meal)
+                save_meals()
+                self._refresh_my_listings()
+                messagebox.showinfo("Listing Cancelled", f"Your listing for {meal['name']} was removed.")
 
 
 
@@ -914,7 +1185,9 @@ class ConnectionsScreen(tk.Frame):
             if current_user and username.lower() == current_user.id.lower():
                 continue
 
-            if query and query not in username.lower() and query not in full_name.lower():
+            username_lower = username.lower()
+            name_parts = full_name.lower().split()
+            if query and query not in username_lower and not any(part.startswith(query) for part in name_parts):
                 continue
 
             results.append((username, info))
@@ -1034,6 +1307,7 @@ class ConnectionsScreen(tk.Frame):
             "name": full_name,
             "role": "Connection"
         })
+        save_connections()
 
         messagebox.showinfo("Connection Added", f"{full_name} was added to your connections.")
         self.refresh()
@@ -1041,6 +1315,7 @@ class ConnectionsScreen(tk.Frame):
     def _remove_connection(self, connection):
         if connection in CONNECTIONS:
             CONNECTIONS.remove(connection)
+            save_connections()
             messagebox.showinfo("Connection Removed", f"{connection.get('name', 'Connection')} was removed.")
             self.refresh()
 
