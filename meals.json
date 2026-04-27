@@ -6,7 +6,7 @@
     "desc": "Fresh taco salad with homemade salsa and crisp lettuce.",
     "date": "2026-04-28",
     "time": "6:00 PM",
-    "seats": 3
+    "seats": 6
   },
   {
     "id": "m2",
@@ -15,7 +15,7 @@
     "desc": "Classic backyard burgers with cheese, lettuce, tomato, and pickles.",
     "date": "2026-04-29",
     "time": "5:15 PM",
-    "seats": 2
+    "seats": 6
   },
   {
     "id": "m3",
@@ -24,7 +24,7 @@
     "desc": "Cheesy baked penne with Italian sausage and marinara sauce.",
     "date": "2026-05-02",
     "time": "12:30 PM",
-    "seats": 2
+    "seats": 5
   },
   {
     "id": "m4",
@@ -33,7 +33,7 @@
     "desc": "Creamy Alfredo pasta with grilled chicken and garlic bread.",
     "date": "2026-05-04",
     "time": "7:30 PM",
-    "seats": 3
+    "seats": 4
   },
   {
     "id": "m5",
@@ -42,7 +42,7 @@
     "desc": "Slow-cooked pulled pork with homemade barbecue sauce and rolls.",
     "date": "2026-05-06",
     "time": "4:45 PM",
-    "seats": 2
+    "seats": 5
   },
   {
     "id": "m6",
@@ -78,7 +78,7 @@
     "desc": "Crispy fried chicken served with mashed potatoes and green beans.",
     "date": "2026-05-16",
     "time": "1:15 PM",
-    "seats": 2
+    "seats": 6
   },
   {
     "id": "m10",
@@ -87,7 +87,7 @@
     "desc": "Falafel wraps with hummus, cucumbers, lettuce, and tahini sauce.",
     "date": "2026-05-18",
     "time": "7:00 PM",
-    "seats": 3
+    "seats": 4
   },
   {
     "id": "m11",
@@ -105,7 +105,7 @@
     "desc": "Homemade sushi rolls with rice, vegetables, and dipping sauce.",
     "date": "2026-05-23",
     "time": "2:00 PM",
-    "seats": 3
+    "seats": 4
   },
   {
     "id": "m13",
@@ -123,7 +123,7 @@
     "desc": "Rich lamb curry served with basmati rice and warm naan.",
     "date": "2026-05-27",
     "time": "7:30 PM",
-    "seats": 3
+    "seats": 4
   },
   {
     "id": "m15",
@@ -159,7 +159,7 @@
     "desc": "Slow-cooked pot roast with carrots, potatoes, and gravy.",
     "date": "2026-06-06",
     "time": "5:15 PM",
-    "seats": 2
+    "seats": 4
   },
   {
     "id": "m19",
@@ -168,7 +168,7 @@
     "desc": "Grilled chicken Caesar salad with romaine, parmesan, and croutons.",
     "date": "2026-06-08",
     "time": "6:00 PM",
-    "seats": 3
+    "seats": 4
   },
   {
     "id": "m20",
@@ -177,7 +177,7 @@
     "desc": "Creamy baked macaroni and cheese with a crispy topping.",
     "date": "2026-06-10",
     "time": "5:30 PM",
-    "seats": 3
+    "seats": 6
   },
   {
     "id": "m21",
@@ -195,7 +195,7 @@
     "desc": "Layered lasagna with meat sauce, ricotta, mozzarella, and parmesan.",
     "date": "2026-06-15",
     "time": "4:15 PM",
-    "seats": 3
+    "seats": 5
   },
   {
     "id": "m23",
@@ -204,7 +204,7 @@
     "desc": "Homestyle chicken pot pie with vegetables and a flaky crust.",
     "date": "2026-06-17",
     "time": "7:45 PM",
-    "seats": 3
+    "seats": 4
   },
   {
     "id": "m24",
@@ -213,7 +213,7 @@
     "desc": "Thai noodles tossed with chicken, peanuts, lime, and vegetables.",
     "date": "2026-06-20",
     "time": "12:00 PM",
-    "seats": 2
+    "seats": 4
   },
   {
     "id": "m25",
@@ -249,7 +249,7 @@
     "desc": "Comforting chicken noodle soup with carrots, celery, and herbs.",
     "date": "2026-06-28",
     "time": "3:45 PM",
-    "seats": 3
+    "seats": 4
   },
   {
     "id": "m29",
@@ -258,7 +258,7 @@
     "desc": "Bell peppers stuffed with rice, beef, tomatoes, and cheese.",
     "date": "2026-06-30",
     "time": "5:15 PM",
-    "seats": 3
+    "seats": 4
   },
   {
     "id": "m30",
@@ -267,7 +267,7 @@
     "desc": "Sizzling chicken fajitas with peppers, onions, tortillas, and salsa.",
     "date": "2026-07-01",
     "time": "7:00 PM",
-    "seats": 5
+    "seats": 6
   },
   {
     "id": "m31",
@@ -277,7 +277,7 @@
     "desc": "Pepperoni Pizza party",
     "date": "2026-05-02",
     "time": "6:45 PM",
-    "seats": 7,
+    "seats": 6,
     "meal_type": "hosted"
   }
 ]
