@@ -343,7 +343,7 @@ class LoginScreen(tk.Frame):
     def __init__(self, parent, app):
         super().__init__(parent, bg=BG_MAIN)
         self._app = app
-        self._mode = "welcome"
+        self._mode = "login_form"
         self._build()
 
     def refresh(self):
@@ -371,24 +371,16 @@ class LoginScreen(tk.Frame):
 
     def _render_mode(self):
         self._clear_card()
-        if self._mode == "welcome":
-            self._build_welcome()
-        elif self._mode == "signup":
+        if self._mode == "signup":
             self._build_signup()
         elif self._mode == "login_form":
             self._build_login()
         elif self._mode == "forgot":
             self._build_forgot()
+        else:
+            self._build_login()
 
-    def _build_welcome(self):
-        tk.Label(self._card, text="Welcome to KinTable", font=FONT_HEAD,
-                 bg=BG_CARD, fg=ACCENT).pack(anchor="w", pady=(0, 10))
-        tk.Label(self._card,
-                 text="Choose an option below to create an account or log in.",
-                 font=FONT_BODY, bg=BG_CARD, fg=TXT_CREAM,
-                 wraplength=340, justify="left").pack(anchor="w", pady=(0, 18))
-        PrimaryBtn(self._card, "Sign Up", lambda: self._set_mode("signup")).pack(fill="x", pady=(0, 10))
-        PrimaryBtn(self._card, "Login", lambda: self._set_mode("login_form")).pack(fill="x")
+    # _build_welcome removed
 
     def _build_signup(self):
         tk.Label(self._card, text="Create your account", font=FONT_HEAD,
@@ -415,24 +407,28 @@ class LoginScreen(tk.Frame):
 
         btn_row = tk.Frame(self._card, bg=BG_CARD)
         btn_row.pack(fill="x", pady=(8, 0))
-        PrimaryBtn(btn_row, "Back", lambda: self._set_mode("welcome")).pack(side="left")
+        PrimaryBtn(btn_row, "Back", lambda: self._set_mode("login_form")).pack(side="left")
         PrimaryBtn(btn_row, "Create Account", self._register).pack(side="right")
 
 
 
     def _build_login(self):
         tk.Label(self._card, text="Login", font=FONT_HEAD,
-                 bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w", pady=(0, 18))
+                 bg=BG_CARD, fg=ACCENT).pack(anchor="w", pady=(0, 18))
 
         self._login_uname = self._field(self._card, "Username")
         self._login_pw = self._field(self._card, "Password", show="*")
 
-        btn_row = tk.Frame(self._card, bg=BG_CARD)
-        btn_row.pack(fill="x", pady=(8, 0))
-        PrimaryBtn(btn_row, "Back", lambda: self._set_mode("welcome")).pack(side="left")
-        PrimaryBtn(btn_row, "Login", self._login).pack(side="right")
+        PrimaryBtn(self._card, "Login", self._login).pack(fill="x", pady=(4, 8))
+        PrimaryBtn(self._card, "Forgot Password", lambda: self._set_mode("forgot")).pack(fill="x", pady=(0, 18))
 
-        PrimaryBtn(self._card, "Forgot Login Info", lambda: self._set_mode("forgot")).pack(fill="x", pady=(14, 0))
+        tk.Frame(self._card, bg=TXT_CREAM, height=1).pack(fill="x", pady=(2, 14))
+
+        tk.Label(self._card,
+                 text="Sign up for your KinTable account now!",
+                 font=FONT_SMALL, bg=BG_CARD, fg=TXT_CREAM,
+                 wraplength=340, justify="center").pack(fill="x", pady=(0, 8))
+        PrimaryBtn(self._card, "SIGN UP", lambda: self._set_mode("signup")).pack(fill="x")
 
     def _build_forgot(self):
         tk.Label(self._card, text="Forgot Login Info", font=FONT_HEAD,
@@ -973,6 +969,11 @@ class HostScreen(tk.Frame):
         NavBar(self, app).pack(side="top", fill="x")
         self._build()
 
+    def refresh(self):
+        if hasattr(self, "_listings_area"):
+            self._refresh_my_listings()
+
+
     def _build(self):
         outer = tk.Frame(self, bg=BG_MAIN)
         outer.pack(fill="both", expand=True, padx=30, pady=20)
@@ -1161,7 +1162,10 @@ class HostScreen(tk.Frame):
                      font=FONT_BODY, bg=BG_MAIN, fg=TXT_CREAM).pack(anchor="w")
             return
 
-        my_meals = [meal for meal in MEALS if meal.get("host_username") == user.id or meal.get("host") == user.name]
+        my_meals = sorted(
+            [meal for meal in MEALS if meal.get("host_username") == user.id or meal.get("host") == user.name],
+            key=meal_sort_key
+        )
 
         if not my_meals:
             tk.Label(self._listings_area,
@@ -1173,19 +1177,37 @@ class HostScreen(tk.Frame):
         sf.pack(fill="both", expand=True)
 
         for meal in my_meals:
-            card = Card(sf.inner, padx=18, pady=14)
-            card.pack(fill="x", pady=8, padx=2)
-            tk.Label(card, text=meal["name"], font=FONT_HEAD,
-                     bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w")
+            card = Card(sf.inner, padx=10, pady=5)
+            card.pack(fill="x", pady=3, padx=2)
+
             meal_date = format_meal_date_for_display(meal.get("date", "Date TBD"))
             meal_time = meal.get("time", "TBD")
-            tk.Label(card, text=f"When: {meal_date} at {meal_time}", font=FONT_SMALL,
-                     bg=BG_CARD, fg=ACCENT).pack(anchor="w", pady=(2, 2))
-            tk.Label(card, text=f"{meal['seats']} servings available", font=FONT_SMALL,
-                     bg=BG_CARD, fg=ACCENT).pack(anchor="w", pady=(0, 6))
-            tk.Label(card, text=meal["desc"], font=FONT_BODY,
-                     bg=BG_CARD, fg=TXT_CREAM, wraplength=600, justify="left").pack(anchor="w")
-            PrimaryBtn(card, "Cancel Listing", lambda m=meal: self._cancel_listing(m)).pack(anchor="e", pady=(12, 0))
+
+            top = tk.Frame(card, bg=BG_CARD)
+            top.pack(fill="x")
+            top.grid_columnconfigure(0, weight=1)
+            top.grid_columnconfigure(1, minsize=210)
+            top.grid_columnconfigure(2, minsize=165)
+
+            left_info = tk.Frame(top, bg=BG_CARD)
+            left_info.grid(row=0, column=0, sticky="nw")
+            tk.Label(left_info, text=f"🍽️ {meal['name']} — Your Meal", font=FONT_HEAD,
+                     bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w")
+            tk.Label(left_info, text=short_description(meal.get("desc", "")), font=FONT_SMALL,
+                     bg=BG_CARD, fg=TXT_CREAM, wraplength=360, justify="left").pack(anchor="w")
+
+            center_info = tk.Frame(top, bg=BG_CARD, width=210)
+            center_info.grid(row=0, column=1, sticky="ne", padx=(8, 10))
+            center_info.grid_propagate(False)
+            tk.Label(center_info, text=f"When: {meal_date} at {meal_time}", font=(F, 10, "bold"),
+                     bg=BG_CARD, fg=ACCENT, anchor="e", width=28).pack(anchor="e")
+
+            action_area = tk.Frame(top, bg=BG_CARD, width=165)
+            action_area.grid(row=0, column=2, sticky="ne")
+            action_area.grid_propagate(False)
+            PrimaryBtn(action_area, "Cancel Listing", lambda m=meal: self._cancel_listing(m)).pack(anchor="e")
+            tk.Label(action_area, text=f"{meal['seats']} seats available", font=(F, 14),
+                     bg=BG_CARD, fg=ACCENT).pack(anchor="e", pady=(1, 0))
 
     def _cancel_listing(self, meal):
         if messagebox.askyesno("Cancel Listing", f"Remove your listing for {meal['name']}?"):
@@ -1509,7 +1531,7 @@ class ProfileScreen(tk.Frame):
         self._app.current_user = None
         login_screen = self._app._screens.get("login")
         if login_screen:
-            login_screen._set_mode("welcome")
+            login_screen._set_mode("login_form")
         self._app.show("login")
 
 
