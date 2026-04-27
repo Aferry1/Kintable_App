@@ -1,33 +1,283 @@
 [
-  {"id":"m1","name":"Taco Salad","host":"Maria Johnson","desc":"Fresh taco salad with homemade salsa and crisp lettuce.","date":"2026-04-28","time":"6:00 PM","seats":3},
-  {"id":"m2","name":"Hamburgers","host":"Li Wei","desc":"Classic backyard burgers with cheese, lettuce, tomato, and pickles.","date":"2026-04-29","time":"5:15 PM","seats":4},
-  {"id":"m3","name":"Pasta Bake","host":"Fatima Khan","desc":"Cheesy baked penne with Italian sausage and marinara sauce.","date":"2026-05-02","time":"12:30 PM","seats":2},
-  {"id":"m4","name":"Chicken Alfredo","host":"David Nguyen","desc":"Creamy Alfredo pasta with grilled chicken and garlic bread.","date":"2026-05-04","time":"7:30 PM","seats":3},
-  {"id":"m5","name":"BBQ Pulled Pork","host":"Carlos Garcia","desc":"Slow-cooked pulled pork with homemade barbecue sauce and rolls.","date":"2026-05-06","time":"4:45 PM","seats":4},
-  {"id":"m6","name":"Vegetable Stir Fry","host":"Amina Hassan","desc":"Fresh vegetables stir-fried with rice in a soy garlic sauce.","date":"2026-05-09","time":"11:45 AM","seats":3},
-  {"id":"m7","name":"Turkey Chili","host":"Ethan Clark","desc":"Hearty turkey chili with beans, tomatoes, and mild spices.","date":"2026-05-11","time":"6:30 PM","seats":4},
-  {"id":"m8","name":"Chicken Enchiladas","host":"Sofia Rodriguez","desc":"Cheesy chicken enchiladas baked with red sauce and rice.","date":"2026-05-13","time":"5:00 PM","seats":5},
-  {"id":"m9","name":"Fried Chicken","host":"James Walker","desc":"Crispy fried chicken served with mashed potatoes and green beans.","date":"2026-05-16","time":"1:15 PM","seats":6},
-  {"id":"m10","name":"Falafel Wraps","host":"Zara Ali","desc":"Falafel wraps with hummus, cucumbers, lettuce, and tahini sauce.","date":"2026-05-18","time":"7:00 PM","seats":3},
-  {"id":"m11","name":"Beef Tacos","host":"Lucas Brown","desc":"Seasoned beef tacos with shredded cheese, salsa, and fresh toppings.","date":"2026-05-20","time":"6:15 PM","seats":5},
-  {"id":"m12","name":"Sushi Rolls","host":"Yuki Tanaka","desc":"Homemade sushi rolls with rice, vegetables, and dipping sauce.","date":"2026-05-23","time":"2:00 PM","seats":3},
-  {"id":"m13","name":"Baked Ziti","host":"Olivia Smith","desc":"Baked ziti with marinara, ricotta, mozzarella, and Italian herbs.","date":"2026-05-25","time":"5:45 PM","seats":4},
-  {"id":"m14","name":"Lamb Curry","host":"Ahmed Ali","desc":"Rich lamb curry served with basmati rice and warm naan.","date":"2026-05-27","time":"7:30 PM","seats":3},
-  {"id":"m15","name":"Chickpea Masala","host":"Priya Patel","desc":"Chickpeas simmered in a tomato-based masala sauce with rice.","date":"2026-05-30","time":"11:30 AM","seats":4},
-  {"id":"m16","name":"Burrito Bowls","host":"Mateo Lopez","desc":"Rice bowls with beans, seasoned chicken, corn, salsa, and toppings.","date":"2026-06-01","time":"4:30 PM","seats":5},
-  {"id":"m17","name":"Veggie Pizza","host":"Chloe Martin","desc":"Homemade pizza topped with peppers, onions, mushrooms, and cheese.","date":"2026-06-03","time":"6:45 PM","seats":4},
-  {"id":"m18","name":"Pot Roast","host":"Noah Wilson","desc":"Slow-cooked pot roast with carrots, potatoes, and gravy.","date":"2026-06-06","time":"5:15 PM","seats":5},
-  {"id":"m19","name":"Chicken Caesar Salad","host":"Isabella King","desc":"Grilled chicken Caesar salad with romaine, parmesan, and croutons.","date":"2026-06-08","time":"6:00 PM","seats":3},
-  {"id":"m20","name":"Mac and Cheese","host":"Elijah Hall","desc":"Creamy baked macaroni and cheese with a crispy topping.","date":"2026-06-10","time":"5:30 PM","seats":6},
-  {"id":"m21","name":"Chicken Shawarma","host":"Alex Turner","desc":"Spiced chicken shawarma wraps with garlic sauce and vegetables.","date":"2026-06-13","time":"8:00 PM","seats":4},
-  {"id":"m22","name":"Lasagna","host":"Brianna Lee","desc":"Layered lasagna with meat sauce, ricotta, mozzarella, and parmesan.","date":"2026-06-15","time":"4:15 PM","seats":5},
-  {"id":"m23","name":"Chicken Pot Pie","host":"Chris Adams","desc":"Homestyle chicken pot pie with vegetables and a flaky crust.","date":"2026-06-17","time":"7:45 PM","seats":4},
-  {"id":"m24","name":"Pad Thai","host":"Daniel Roberts","desc":"Thai noodles tossed with chicken, peanuts, lime, and vegetables.","date":"2026-06-20","time":"12:00 PM","seats":3},
-  {"id":"m25","name":"Breakfast Casserole","host":"Emily White","desc":"Egg casserole with sausage, cheese, potatoes, and peppers.","date":"2026-06-22","time":"4:00 PM","seats":6},
-  {"id":"m26","name":"Chicken Biryani","host":"Farah Rahman","desc":"Fragrant rice with spiced chicken, herbs, and warm seasonings.","date":"2026-06-24","time":"6:30 PM","seats":4},
-  {"id":"m27","name":"Carnitas Tacos","host":"Gabriel Martinez","desc":"Slow-cooked pork carnitas tacos with onion, cilantro, and lime.","date":"2026-06-27","time":"8:30 PM","seats":5},
-  {"id":"m28","name":"Chicken Noodle Soup","host":"Hannah Scott","desc":"Comforting chicken noodle soup with carrots, celery, and herbs.","date":"2026-06-28","time":"3:45 PM","seats":4},
-  {"id":"m29","name":"Stuffed Peppers","host":"Isaac Flores","desc":"Bell peppers stuffed with rice, beef, tomatoes, and cheese.","date":"2026-06-30","time":"5:15 PM","seats":3},
-  {"id":"m30","name":"Chicken Fajitas","host":"Jennifer Garcia","desc":"Sizzling chicken fajitas with peppers, onions, tortillas, and salsa.","date":"2026-07-01","time":"7:00 PM","seats":5},
-  {"id":"m31","name":"Pizza","host":"Jack Robinson","host_username":"jackdr","desc":"Pepperoni Pizza party","date":"2026-05-02","time":"6:45 PM","seats":7}
+  {
+    "id": "m1",
+    "name": "Taco Salad",
+    "host": "Maria Johnson",
+    "desc": "Fresh taco salad with homemade salsa and crisp lettuce.",
+    "date": "2026-04-28",
+    "time": "6:00 PM",
+    "seats": 3
+  },
+  {
+    "id": "m2",
+    "name": "Hamburgers",
+    "host": "Li Wei",
+    "desc": "Classic backyard burgers with cheese, lettuce, tomato, and pickles.",
+    "date": "2026-04-29",
+    "time": "5:15 PM",
+    "seats": 2
+  },
+  {
+    "id": "m3",
+    "name": "Pasta Bake",
+    "host": "Fatima Khan",
+    "desc": "Cheesy baked penne with Italian sausage and marinara sauce.",
+    "date": "2026-05-02",
+    "time": "12:30 PM",
+    "seats": 2
+  },
+  {
+    "id": "m4",
+    "name": "Chicken Alfredo",
+    "host": "David Nguyen",
+    "desc": "Creamy Alfredo pasta with grilled chicken and garlic bread.",
+    "date": "2026-05-04",
+    "time": "7:30 PM",
+    "seats": 3
+  },
+  {
+    "id": "m5",
+    "name": "BBQ Pulled Pork",
+    "host": "Carlos Garcia",
+    "desc": "Slow-cooked pulled pork with homemade barbecue sauce and rolls.",
+    "date": "2026-05-06",
+    "time": "4:45 PM",
+    "seats": 2
+  },
+  {
+    "id": "m6",
+    "name": "Vegetable Stir Fry",
+    "host": "Amina Hassan",
+    "desc": "Fresh vegetables stir-fried with rice in a soy garlic sauce.",
+    "date": "2026-05-09",
+    "time": "11:45 AM",
+    "seats": 3
+  },
+  {
+    "id": "m7",
+    "name": "Turkey Chili",
+    "host": "Ethan Clark",
+    "desc": "Hearty turkey chili with beans, tomatoes, and mild spices.",
+    "date": "2026-05-11",
+    "time": "6:30 PM",
+    "seats": 4
+  },
+  {
+    "id": "m8",
+    "name": "Chicken Enchiladas",
+    "host": "Sofia Rodriguez",
+    "desc": "Cheesy chicken enchiladas baked with red sauce and rice.",
+    "date": "2026-05-13",
+    "time": "5:00 PM",
+    "seats": 5
+  },
+  {
+    "id": "m9",
+    "name": "Fried Chicken",
+    "host": "James Walker",
+    "desc": "Crispy fried chicken served with mashed potatoes and green beans.",
+    "date": "2026-05-16",
+    "time": "1:15 PM",
+    "seats": 2
+  },
+  {
+    "id": "m10",
+    "name": "Falafel Wraps",
+    "host": "Zara Ali",
+    "desc": "Falafel wraps with hummus, cucumbers, lettuce, and tahini sauce.",
+    "date": "2026-05-18",
+    "time": "7:00 PM",
+    "seats": 3
+  },
+  {
+    "id": "m11",
+    "name": "Beef Tacos",
+    "host": "Lucas Brown",
+    "desc": "Seasoned beef tacos with shredded cheese, salsa, and fresh toppings.",
+    "date": "2026-05-20",
+    "time": "6:15 PM",
+    "seats": 5
+  },
+  {
+    "id": "m12",
+    "name": "Sushi Rolls",
+    "host": "Yuki Tanaka",
+    "desc": "Homemade sushi rolls with rice, vegetables, and dipping sauce.",
+    "date": "2026-05-23",
+    "time": "2:00 PM",
+    "seats": 3
+  },
+  {
+    "id": "m13",
+    "name": "Baked Ziti",
+    "host": "Olivia Smith",
+    "desc": "Baked ziti with marinara, ricotta, mozzarella, and Italian herbs.",
+    "date": "2026-05-25",
+    "time": "5:45 PM",
+    "seats": 4
+  },
+  {
+    "id": "m14",
+    "name": "Lamb Curry",
+    "host": "Ahmed Ali",
+    "desc": "Rich lamb curry served with basmati rice and warm naan.",
+    "date": "2026-05-27",
+    "time": "7:30 PM",
+    "seats": 3
+  },
+  {
+    "id": "m15",
+    "name": "Chickpea Masala",
+    "host": "Priya Patel",
+    "desc": "Chickpeas simmered in a tomato-based masala sauce with rice.",
+    "date": "2026-05-30",
+    "time": "11:30 AM",
+    "seats": 4
+  },
+  {
+    "id": "m16",
+    "name": "Burrito Bowls",
+    "host": "Mateo Lopez",
+    "desc": "Rice bowls with beans, seasoned chicken, corn, salsa, and toppings.",
+    "date": "2026-06-01",
+    "time": "4:30 PM",
+    "seats": 5
+  },
+  {
+    "id": "m17",
+    "name": "Veggie Pizza",
+    "host": "Chloe Martin",
+    "desc": "Homemade pizza topped with peppers, onions, mushrooms, and cheese.",
+    "date": "2026-06-03",
+    "time": "6:45 PM",
+    "seats": 4
+  },
+  {
+    "id": "m18",
+    "name": "Pot Roast",
+    "host": "Noah Wilson",
+    "desc": "Slow-cooked pot roast with carrots, potatoes, and gravy.",
+    "date": "2026-06-06",
+    "time": "5:15 PM",
+    "seats": 2
+  },
+  {
+    "id": "m19",
+    "name": "Chicken Caesar Salad",
+    "host": "Isabella King",
+    "desc": "Grilled chicken Caesar salad with romaine, parmesan, and croutons.",
+    "date": "2026-06-08",
+    "time": "6:00 PM",
+    "seats": 3
+  },
+  {
+    "id": "m20",
+    "name": "Mac and Cheese",
+    "host": "Elijah Hall",
+    "desc": "Creamy baked macaroni and cheese with a crispy topping.",
+    "date": "2026-06-10",
+    "time": "5:30 PM",
+    "seats": 3
+  },
+  {
+    "id": "m21",
+    "name": "Chicken Shawarma",
+    "host": "Alex Turner",
+    "desc": "Spiced chicken shawarma wraps with garlic sauce and vegetables.",
+    "date": "2026-06-13",
+    "time": "8:00 PM",
+    "seats": 4
+  },
+  {
+    "id": "m22",
+    "name": "Lasagna",
+    "host": "Brianna Lee",
+    "desc": "Layered lasagna with meat sauce, ricotta, mozzarella, and parmesan.",
+    "date": "2026-06-15",
+    "time": "4:15 PM",
+    "seats": 3
+  },
+  {
+    "id": "m23",
+    "name": "Chicken Pot Pie",
+    "host": "Chris Adams",
+    "desc": "Homestyle chicken pot pie with vegetables and a flaky crust.",
+    "date": "2026-06-17",
+    "time": "7:45 PM",
+    "seats": 3
+  },
+  {
+    "id": "m24",
+    "name": "Pad Thai",
+    "host": "Daniel Roberts",
+    "desc": "Thai noodles tossed with chicken, peanuts, lime, and vegetables.",
+    "date": "2026-06-20",
+    "time": "12:00 PM",
+    "seats": 2
+  },
+  {
+    "id": "m25",
+    "name": "Breakfast Casserole",
+    "host": "Emily White",
+    "desc": "Egg casserole with sausage, cheese, potatoes, and peppers.",
+    "date": "2026-06-22",
+    "time": "4:00 PM",
+    "seats": 6
+  },
+  {
+    "id": "m26",
+    "name": "Chicken Biryani",
+    "host": "Farah Rahman",
+    "desc": "Fragrant rice with spiced chicken, herbs, and warm seasonings.",
+    "date": "2026-06-24",
+    "time": "6:30 PM",
+    "seats": 4
+  },
+  {
+    "id": "m27",
+    "name": "Carnitas Tacos",
+    "host": "Gabriel Martinez",
+    "desc": "Slow-cooked pork carnitas tacos with onion, cilantro, and lime.",
+    "date": "2026-06-27",
+    "time": "8:30 PM",
+    "seats": 5
+  },
+  {
+    "id": "m28",
+    "name": "Chicken Noodle Soup",
+    "host": "Hannah Scott",
+    "desc": "Comforting chicken noodle soup with carrots, celery, and herbs.",
+    "date": "2026-06-28",
+    "time": "3:45 PM",
+    "seats": 3
+  },
+  {
+    "id": "m29",
+    "name": "Stuffed Peppers",
+    "host": "Isaac Flores",
+    "desc": "Bell peppers stuffed with rice, beef, tomatoes, and cheese.",
+    "date": "2026-06-30",
+    "time": "5:15 PM",
+    "seats": 3
+  },
+  {
+    "id": "m30",
+    "name": "Chicken Fajitas",
+    "host": "Jennifer Garcia",
+    "desc": "Sizzling chicken fajitas with peppers, onions, tortillas, and salsa.",
+    "date": "2026-07-01",
+    "time": "7:00 PM",
+    "seats": 5
+  },
+  {
+    "id": "m31",
+    "name": "Pizza",
+    "host": "Jack Robinson",
+    "host_username": "jackdr",
+    "desc": "Pepperoni Pizza party",
+    "date": "2026-05-02",
+    "time": "6:45 PM",
+    "seats": 7,
+    "meal_type": "hosted"
+  }
 ]

@@ -185,6 +185,50 @@ def format_meal_date_for_display(meal_date):
         return parsed_date.strftime("%B %d").replace(" 0", " ")
     except (ValueError, TypeError):
         return meal_date or "Date TBD"
+    
+def short_description(text, limit=105):
+    if not text:
+        return ""
+    text = text.strip()
+    if len(text) <= limit:
+        return text
+    return text[:limit].rstrip() + "..."
+
+
+# Helper functions for meal sorting and connection matching
+def meal_sort_key(meal):
+    raw_date = meal.get("date", "9999-12-31")
+    raw_time = meal.get("time", "TBD")
+
+    try:
+        parsed_date = datetime.strptime(raw_date, "%Y-%m-%d").date()
+    except (ValueError, TypeError):
+        parsed_date = date.max
+
+    if raw_time == "TBD":
+        parsed_time = datetime.strptime("11:59 PM", "%I:%M %p").time()
+    else:
+        try:
+            parsed_time = datetime.strptime(raw_time, "%I:%M %p").time()
+        except (ValueError, TypeError):
+            parsed_time = datetime.strptime("11:59 PM", "%I:%M %p").time()
+
+    return (parsed_date, parsed_time, meal.get("name", "").lower())
+
+
+def meal_hosted_by_connection(meal):
+    meal_host_name = meal.get("host", "").lower()
+    meal_host_username = meal.get("host_username", "").lower()
+
+    for connection in CONNECTIONS:
+        connection_name = connection.get("name", "").lower()
+        connection_username = connection.get("username", "").lower()
+        if meal_host_name and meal_host_name == connection_name:
+            return True
+        if meal_host_username and meal_host_username == connection_username:
+            return True
+
+    return False
 
 class ScrollableFrame(tk.Frame):
     def __init__(self, parent):
@@ -218,7 +262,7 @@ class PrimaryBtn(tk.Button):
                          bg=BTN_EARTH, fg=TXT_GREEN, font=FONT_BTN,
                          relief="flat", cursor="hand2",
                          highlightbackground=TXT_CREAM, highlightthickness=1,
-                         padx=14, pady=6, **kw)
+                         padx=6, pady=2, **kw)
         self.bind("<Enter>", lambda e: self.config(bg="#D4A87A", fg=ACCENT))
         self.bind("<Leave>", lambda e: self.config(bg=BTN_EARTH, fg=TXT_GREEN))
 
@@ -229,7 +273,7 @@ class SecondaryBtn(tk.Button):
                          bg=BG_CARD, fg=TXT_CREAM, font=FONT_BTN,
                          relief="flat", cursor="hand2",
                          highlightbackground=ACCENT, highlightthickness=1,
-                         padx=14, pady=6, **kw)
+                         padx=6, pady=2, **kw)
         self.bind("<Enter>", lambda e: self.config(bg="#2F4430"))
         self.bind("<Leave>", lambda e: self.config(bg=BG_CARD))
 
@@ -565,45 +609,99 @@ class HomeScreen(tk.Frame):
         tk.Label(self._content, text=greeting,
                  font=FONT_BODY, bg=BG_MAIN, fg=TXT_CREAM).pack(anchor="w", pady=(2, 16))
 
-        sf = ScrollFrame(self._content)
-        sf.pack(fill="both", expand=True)
-
-        available_meals = [meal for meal in MEALS if meal.get("seats", 0) > 0]
+        available_meals = sorted(
+            [meal for meal in MEALS if meal.get("seats", 0) > 0],
+            key=meal_sort_key
+        )
 
         if not available_meals:
-            tk.Label(sf.inner,
+            tk.Label(self._content,
                      text="No meals are currently available. Check back soon for new KinTable listings!",
                      font=FONT_BODY, bg=BG_MAIN, fg=TXT_CREAM,
                      justify="left").pack(anchor="w", pady=8)
             return
 
+        connection_meals = [meal for meal in available_meals if meal_hosted_by_connection(meal)]
+
+        top_section = tk.Frame(self._content, bg=BG_MAIN, height=210)
+        top_section.pack(fill="x", pady=(0, 12))
+        top_section.pack_propagate(False)
+
+        tk.Label(top_section, text="Your Connections' Meals", font=FONT_HEAD,
+                 bg=BG_MAIN, fg=ACCENT).pack(anchor="w", pady=(0, 6))
+
+        connection_scroll = ScrollFrame(top_section)
+        connection_scroll.pack(fill="both", expand=True)
+
+        if connection_meals:
+            for meal in connection_meals:
+                self._meal_card(connection_scroll.inner, meal)
+        else:
+            tk.Label(connection_scroll.inner,
+                     text="No meals from your connections are currently available.",
+                     font=FONT_BODY, bg=BG_MAIN, fg=TXT_CREAM,
+                     justify="left").pack(anchor="w", pady=8)
+
+        bottom_section = tk.Frame(self._content, bg=BG_MAIN)
+        bottom_section.pack(fill="both", expand=True)
+
+        tk.Label(bottom_section, text="All Available Meals", font=FONT_HEAD,
+                 bg=BG_MAIN, fg=ACCENT).pack(anchor="w", pady=(0, 6))
+
+        all_scroll = ScrollFrame(bottom_section)
+        all_scroll.pack(fill="both", expand=True)
+
         for meal in available_meals:
-            self._meal_card(sf.inner, meal)
+            self._meal_card(all_scroll.inner, meal)
 
     def _meal_card(self, parent, meal):
-        card = Card(parent, padx=18, pady=14)
-        card.pack(fill="x", pady=8, padx=2)
+        card = Card(parent, padx=10, pady=5)
+        card.pack(fill="x", pady=3, padx=2)
 
         top = tk.Frame(card, bg=BG_CARD)
         top.pack(fill="x")
+        top.grid_columnconfigure(0, weight=1)
+        top.grid_columnconfigure(1, minsize=210)
+        top.grid_columnconfigure(2, minsize=165)
 
-        tk.Label(top, text=meal["name"], font=FONT_HEAD,
-                 bg=BG_CARD, fg=TXT_CREAM).pack(side="left")
-        tk.Label(top, text=f"{meal['seats']} seats available", font=FONT_SMALL,
-                 bg=BG_CARD, fg=ACCENT).pack(side="right")
+        left_info = tk.Frame(top, bg=BG_CARD)
+        left_info.grid(row=0, column=0, sticky="nw")
+        tk.Label(left_info, text=meal["name"], font=FONT_HEAD,
+                 bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w")
+        tk.Label(left_info, text=short_description(meal.get("desc", "")), font=FONT_SMALL,
+                 bg=BG_CARD, fg=TXT_CREAM, wraplength=360, justify="left").pack(anchor="w")
 
         meal_date = format_meal_date_for_display(meal.get("date", "Date TBD"))
         meal_time = meal.get("time", "TBD")
-        tk.Label(card, text=f"Hosted by {meal['host']}", font=FONT_SMALL,
-                 bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w", pady=(2, 2))
-        tk.Label(card, text=f"When: {meal_date} at {meal_time}", font=FONT_SMALL,
-                 bg=BG_CARD, fg=ACCENT).pack(anchor="w", pady=(0, 6))
-        tk.Label(card, text=meal["desc"], font=FONT_BODY,
-                 bg=BG_CARD, fg=TXT_CREAM, wraplength=600, justify="left").pack(anchor="w")
+        center_info = tk.Frame(top, bg=BG_CARD, width=210)
+        center_info.grid(row=0, column=1, sticky="ne", padx=(8, 10))
+        center_info.grid_propagate(False)
+        tk.Label(center_info, text=f"When: {meal_date} at {meal_time}", font=(F, 10, "bold"),
+                 bg=BG_CARD, fg=ACCENT, anchor="e", width=28).pack(anchor="e")
 
-        PrimaryBtn(card, "Reserve a Seat", lambda m=meal: self._reserve(m)).pack(
-            anchor="e", pady=(12, 0))
+        user = self._app.current_user
+        is_own_meal = user and (meal.get("host_username") == user.id or meal.get("host") == user.name)
+        if not is_own_meal:
+            tk.Label(center_info, text=f"Hosted by {meal['host']}", font=FONT_SMALL,
+                     bg=BG_CARD, fg=TXT_CREAM, anchor="e", width=28).pack(anchor="e")
 
+        action_area = tk.Frame(top, bg=BG_CARD, width=165)
+        action_area.grid(row=0, column=2, sticky="ne")
+        action_area.grid_propagate(False)
+
+        existing_reservation = next((r for r in RESERVATIONS if r["id"] == meal["id"]), None)
+        if is_own_meal:
+            PrimaryBtn(action_area, "Your Meal", lambda: None, state="disabled").pack(anchor="e")
+        elif existing_reservation:
+            reserved_seats = existing_reservation.get("reserved_seats", 1)
+            seat_word = "Seat" if reserved_seats == 1 else "Seats"
+            PrimaryBtn(action_area, f"Leave My {seat_word}", lambda m=meal: self._leave_seat(m)).pack(anchor="e")
+        else:
+            PrimaryBtn(action_area, "Reserve a Seat", lambda m=meal: self._reserve(m)).pack(anchor="e")
+
+        tk.Label(action_area, text=f"{meal['seats']} seats available", font=(F, 14),
+                 bg=BG_CARD, fg=ACCENT).pack(anchor="e", pady=(1, 0))
+    
     def _reserve(self, meal):
         if meal["seats"] <= 0:
             messagebox.showwarning("No servings available", f"Sorry, there are no servings left for {meal['name']}.")
@@ -721,6 +819,26 @@ class HomeScreen(tk.Frame):
         dialog.bind("<Escape>", lambda event: cancel())
         dialog.wait_window()
         return result["value"]
+    
+    def _leave_seat(self, meal):
+        reservation = next((r for r in RESERVATIONS if r["id"] == meal["id"]), None)
+        if not reservation:
+            messagebox.showinfo("No Meal Reservation", f"You do not currently have a reservation for {meal['name']}.")
+            self.refresh()
+            return
+
+        reserved_seats = reservation.get("reserved_seats", 1)
+        RESERVATIONS.remove(reservation)
+
+        for listed_meal in MEALS:
+            if listed_meal["id"] == meal["id"]:
+                listed_meal["seats"] += reserved_seats
+                break
+
+        save_meals()
+        serving_word = "serving" if reserved_seats == 1 else "servings"
+        messagebox.showinfo("Meal Reservation Removed", f"You left your seat for {meal['name']}. {reserved_seats} {serving_word} are now available again.")
+        self.refresh()
 
 
 class ReservationsScreen(tk.Frame):
@@ -743,7 +861,10 @@ class ReservationsScreen(tk.Frame):
         user = self._app.current_user
         hosted_meals = []
         if user:
-            hosted_meals = [meal for meal in MEALS if meal.get("host_username") == user.id or meal.get("host") == user.name]
+            hosted_meals = sorted(
+                [meal for meal in MEALS if meal.get("host_username") == user.id or meal.get("host") == user.name],
+                key=meal_sort_key
+            )
 
         if not RESERVATIONS and not hosted_meals:
             tk.Label(self._content,
@@ -754,52 +875,73 @@ class ReservationsScreen(tk.Frame):
         sf = ScrollFrame(self._content)
         sf.pack(fill="both", expand=True)
 
-        if RESERVATIONS:
-            tk.Label(sf.inner, text="Meals I Reserved", font=FONT_HEAD,
-                     bg=BG_MAIN, fg=ACCENT).pack(anchor="w", pady=(0, 8))
+        sorted_reservations = sorted(RESERVATIONS, key=meal_sort_key)
 
-        for meal in RESERVATIONS:
-            card = Card(sf.inner, padx=18, pady=14)
-            card.pack(fill="x", pady=8, padx=2)
-            tk.Label(card, text=meal["name"], font=FONT_HEAD,
-                     bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w")
-            reserved_seats = meal.get("reserved_seats", 1)
-            serving_word = "serving" if reserved_seats == 1 else "servings"
-            meal_date = format_meal_date_for_display(meal.get("date", "Date TBD"))
-            meal_time = meal.get("time", "TBD")
-            tk.Label(card, text=f"Hosted by {meal['host']}", font=FONT_SMALL,
-                     bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w", pady=(2, 2))
-            tk.Label(card, text=f"When: {meal_date} at {meal_time}", font=FONT_SMALL,
-                     bg=BG_CARD, fg=ACCENT).pack(anchor="w", pady=(0, 2))
-            tk.Label(card, text=f"Reserved: {reserved_seats} {serving_word}", font=FONT_SMALL,
-                     bg=BG_CARD, fg=ACCENT).pack(anchor="w", pady=(0, 6))
-            tk.Label(card, text=meal["desc"], font=FONT_BODY,
-                     bg=BG_CARD, fg=TXT_CREAM, wraplength=600, justify="left").pack(anchor="w")
-            PrimaryBtn(card, "Cancel Meal",
-                         lambda m=meal: self._cancel(m)).pack(anchor="e", pady=(12, 0))
-
-        if hosted_meals:
-            tk.Label(sf.inner, text="Meals I Am Hosting", font=FONT_HEAD,
-                     bg=BG_MAIN, fg=ACCENT).pack(anchor="w", pady=(18, 8))
-
+        combined_meals = []
+        for meal in sorted_reservations:
+            meal["meal_type"] = "reserved"
+            combined_meals.append(meal)
         for meal in hosted_meals:
-            card = Card(sf.inner, padx=18, pady=14)
-            card.pack(fill="x", pady=8, padx=2)
+            meal["meal_type"] = "hosted"
+            combined_meals.append(meal)
+
+        combined_meals = sorted(combined_meals, key=meal_sort_key)
+
+        for meal in combined_meals:
+            card = Card(sf.inner, padx=10, pady=5)
+            card.pack(fill="x", pady=3, padx=2)
+
             meal_date = format_meal_date_for_display(meal.get("date", "Date TBD"))
             meal_time = meal.get("time", "TBD")
-            tk.Label(card, text=meal["name"], font=FONT_HEAD,
+            meal_type = meal.get("meal_type")
+
+            top = tk.Frame(card, bg=BG_CARD)
+            top.pack(fill="x")
+            top.grid_columnconfigure(0, weight=1)
+            top.grid_columnconfigure(1, minsize=210)
+            top.grid_columnconfigure(2, minsize=165)
+
+            left_info = tk.Frame(top, bg=BG_CARD)
+            left_info.grid(row=0, column=0, sticky="nw")
+
+            title_text = meal["name"]
+            if meal_type == "hosted":
+                title_text = f"🍽️ {meal['name']} — Your Meal"
+
+            tk.Label(left_info, text=title_text, font=FONT_HEAD,
                      bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w")
-            tk.Label(card, text=f"When: {meal_date} at {meal_time}", font=FONT_SMALL,
-                     bg=BG_CARD, fg=ACCENT).pack(anchor="w", pady=(2, 2))
-            tk.Label(card, text=f"Hosting: {meal['seats']} servings still available", font=FONT_SMALL,
-                     bg=BG_CARD, fg=TXT_CREAM).pack(anchor="w", pady=(0, 6))
-            tk.Label(card, text=meal["desc"], font=FONT_BODY,
-                     bg=BG_CARD, fg=TXT_CREAM, wraplength=600, justify="left").pack(anchor="w")
-            PrimaryBtn(card, "Cancel Hosted Meal",
-                         lambda m=meal: self._cancel_hosted_meal(m)).pack(anchor="e", pady=(12, 0))
+            tk.Label(left_info, text=short_description(meal.get("desc", "")), font=FONT_SMALL,
+                     bg=BG_CARD, fg=TXT_CREAM, wraplength=360, justify="left").pack(anchor="w")
+
+            center_info = tk.Frame(top, bg=BG_CARD, width=210)
+            center_info.grid(row=0, column=1, sticky="ne", padx=(8, 10))
+            center_info.grid_propagate(False)
+            tk.Label(center_info, text=f"When: {meal_date} at {meal_time}", font=(F, 10, "bold"),
+                     bg=BG_CARD, fg=ACCENT, anchor="e", width=28).pack(anchor="e")
+
+            if meal_type == "reserved":
+                tk.Label(center_info, text=f"Hosted by {meal['host']}", font=FONT_SMALL,
+                         bg=BG_CARD, fg=TXT_CREAM, anchor="e", width=28).pack(anchor="e")
+
+            action_area = tk.Frame(top, bg=BG_CARD, width=165)
+            action_area.grid(row=0, column=2, sticky="ne")
+            action_area.grid_propagate(False)
+
+            if meal_type == "reserved":
+                reserved_seats = meal.get("reserved_seats", 1)
+                seat_word = "Seat" if reserved_seats == 1 else "Seats"
+                PrimaryBtn(action_area, f"Leave My {seat_word}", lambda m=meal: self._cancel(m)).pack(anchor="e")
+                tk.Label(action_area, text=f"{reserved_seats} reserved", font=(F, 14),
+                         bg=BG_CARD, fg=ACCENT).pack(anchor="e", pady=(1, 0))
+            else:
+                PrimaryBtn(action_area, "Cancel Hosted Meal", lambda m=meal: self._cancel_hosted_meal(m)).pack(anchor="e")
+                tk.Label(action_area, text=f"{meal['seats']} seats available", font=(F, 14),
+                         bg=BG_CARD, fg=ACCENT).pack(anchor="e", pady=(1, 0))
 
     def _cancel(self, meal):
-        if meal in RESERVATIONS:
+        matching_reservation = next((r for r in RESERVATIONS if r["id"] == meal["id"]), None)
+        if matching_reservation:
+            meal = matching_reservation
             RESERVATIONS.remove(meal)
 
             reserved_seats = meal.get("reserved_seats", 1)
@@ -814,8 +956,9 @@ class ReservationsScreen(tk.Frame):
 
     def _cancel_hosted_meal(self, meal):
         if messagebox.askyesno("Cancel Hosted Meal", f"Remove your hosted meal listing for {meal['name']}?"):
-            if meal in MEALS:
-                MEALS.remove(meal)
+            matching_meal = next((m for m in MEALS if m["id"] == meal["id"]), None)
+            if matching_meal:
+                MEALS.remove(matching_meal)
                 save_meals()
                 messagebox.showinfo("Hosted Meal Cancelled", f"Your hosted meal listing for {meal['name']} was removed.")
                 self.refresh()
@@ -1014,7 +1157,7 @@ class HostScreen(tk.Frame):
         user = self._app.current_user
         if not user:
             tk.Label(self._listings_area,
-                     text="Log in to view your hosted meal listings.",
+                     text="Host your first meal and fill out the information above!",
                      font=FONT_BODY, bg=BG_MAIN, fg=TXT_CREAM).pack(anchor="w")
             return
 
@@ -1022,7 +1165,7 @@ class HostScreen(tk.Frame):
 
         if not my_meals:
             tk.Label(self._listings_area,
-                     text="You have not listed any meals yet.",
+                     text="Host your first meal and fill out the information above!",
                      font=FONT_BODY, bg=BG_MAIN, fg=TXT_CREAM).pack(anchor="w")
             return
 

@@ -1,0 +1,37 @@
+[
+  {
+    "username": "sarahmitchell",
+    "name": "Sarah Mitchell",
+    "role": "Host"
+  },
+  {
+    "username": "tombradley",
+    "name": "Tom Bradley",
+    "role": "Guest"
+  },
+  {
+    "username": "exampleuser",
+    "name": "Example User",
+    "role": "Connection"
+  },
+  {
+    "username": "leonsanders24",
+    "name": "Leon Sanders",
+    "role": "Connection"
+  },
+  {
+    "username": "ryanjames17",
+    "name": "Ryan James",
+    "role": "Connection"
+  },
+  {
+    "username": "noahwilson58",
+    "name": "Noah Wilson",
+    "role": "Connection"
+  },
+  {
+    "username": "danielroberts78",
+    "name": "Daniel Roberts",
+    "role": "Connection"
+  }
+]
