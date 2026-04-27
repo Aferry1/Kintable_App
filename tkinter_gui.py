@@ -1075,18 +1075,19 @@ class HostScreen(tk.Frame):
             self._time_box.config(state="readonly")
             self._ampm_box.config(state="readonly")
 
-    def _clear(self):
-        default_month, default_day = get_default_meal_date_values()
-        self._title_var.set("e.g. Beef Stew")
-        self._desc_var.delete("1.0", "end")
-        self._month_var.set(default_month)
-        self._day_var.set(default_day)
-        self._time_tbd_var.set(True)
-        self._time_var.set(TIME_OPTIONS[0])
-        self._ampm_var.set("PM")
-        self._toggle_time_fields()
-        self._seats_var.set("e.g. 4")
-        self._invite_var.set("optional")
+def _clear(self):
+    default_month, default_day = get_default_meal_date_values()
+
+    self._title_var.set("e.g. Beef Stew")
+    self._seats_var.set("e.g. 4")
+    self._invite_var.set("optional")
+    self._desc_var.delete("1.0", "end")
+    self._month_var.set(default_month)
+    self._day_var.set(default_day)
+    self._time_tbd_var.set(True)
+    self._time_var.set(TIME_OPTIONS[0])
+    self._ampm_var.set("PM")
+    self._toggle_time_fields()
 
     def _submit(self):
         title = self._title_var.get().strip()
